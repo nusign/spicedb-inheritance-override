@@ -1,0 +1,137 @@
+caveat password_protected(password string, current_password string) {
+  password == current_password
+}
+
+definition user {}
+
+definition guest {}
+
+definition anonymous {}
+
+definition tenant {
+  relation public: user:* | guest:* | anonymous:*
+  relation authenticated: user:* | guest:*
+
+  relation member: user
+  relation admin: user
+  relation owner: user
+
+  permission membership = member + admin + owner
+  
+  permission administratorship = admin + owner
+}
+
+definition group {
+  relation tenant: tenant
+  relation user: user
+
+  permission membership = user
+}
+
+definition folder {
+  relation tenant: tenant
+  relation parent: folder
+
+  relation owner: user
+
+  relation viewer: user
+  relation reviewer: user
+  relation editor: user
+  relation member_inheritance_disabled: user
+
+  relation group_viewer: group#membership
+  relation group_reviewer: group#membership
+  relation group_editor: group#membership
+  relation group_inheritance_disabled: group#membership
+
+  relation tenant_viewer: tenant#member
+  relation tenant_reviewer: tenant#member
+  relation tenant_editor: tenant#member
+  relation tenant_inheritance_disabled: tenant#member
+
+  relation public_viewer: user:* | guest:* | anonymous:*
+  relation public_reviewer: user:* | guest:* | anonymous:*
+  relation public_inheritance_disabled: user:* | guest:* | anonymous:*
+
+  permission folder_member = viewer + reviewer + editor
+  permission group_member = group_viewer + group_reviewer + group_editor
+  permission tenant_member = tenant_viewer + tenant_reviewer + tenant_editor
+  permission public_member = public_viewer + public_reviewer
+
+  permission retrieve = tenant->administratorship + parent->retrieve + folder_member + group_member + tenant_member + public_member
+  permission retrieve_gallery = tenant->administratorship + parent->retrieve_gallery + folder_member + group_member + tenant_member + public_member
+  permission update_gallery = tenant->administratorship + parent->update_gallery + editor + group_editor + tenant_editor
+}
+
+definition gallery {
+  relation tenant: tenant
+  relation folder: folder
+  relation section: section
+
+  relation owner: user
+
+  relation viewer: user
+  relation reviewer: user
+  relation editor: user
+  relation member_inheritance_disabled: user
+
+  relation group_viewer: group#membership
+  relation group_reviewer: group#membership
+  relation group_editor: group#membership
+  relation group_inheritance_disabled: group#membership
+
+  relation tenant_viewer: tenant#member
+  relation tenant_reviewer: tenant#member
+  relation tenant_editor: tenant#member
+  relation tenant_inheritance_disabled: tenant#member
+
+  relation public_viewer: user:* | user:* with password_protected | guest:* | guest:* with password_protected | anonymous:* | anonymous:* with password_protected
+  relation public_reviewer: user:* | user:* with password_protected | guest:* | guest:* with password_protected
+  relation public_inheritance_disabled: user:* | guest:* | anonymous:*
+
+  permission gallery_member = viewer + reviewer + editor
+  permission group_member = group_viewer + group_reviewer + group_editor
+  permission tenant_member = tenant_viewer + tenant_reviewer + tenant_editor
+  permission public_member = public_viewer + public_reviewer
+  permission authenticated = gallery_member + group_member + tenant_member + public_reviewer
+
+  permission folder_member_access_disabled = folder->folder_member & member_inheritance_disabled
+  permission folder_group_access_disabled = folder->group_member & group_inheritance_disabled
+  permission folder_tenant_access_disabled = folder->tenant_member & tenant_inheritance_disabled
+  permission folder_public_access_disabled = folder->public_member & public_inheritance_disabled
+
+  permission parent_member_access_disabled = section->gallery_member & member_inheritance_disabled
+  permission parent_group_access_disabled = section->group_member & group_inheritance_disabled
+  permission parent_tenant_access_disabled = section->tenant_member & tenant_inheritance_disabled
+  permission parent_public_access_disabled = section->public_member & public_inheritance_disabled
+
+  permission retrieve = tenant->administratorship + 
+    (folder->retrieve_gallery - 
+      (folder_member_access_disabled + folder_group_access_disabled + folder_tenant_access_disabled + folder_public_access_disabled)) + 
+    (section->retrieve_gallery -
+      (parent_member_access_disabled + parent_group_access_disabled + parent_tenant_access_disabled + parent_public_access_disabled)) + 
+    gallery_member + group_member + tenant_member + public_member
+  permission update = tenant->administratorship + 
+    (folder->update_gallery - 
+      (folder_member_access_disabled + folder_group_access_disabled + folder_tenant_access_disabled + folder_public_access_disabled)) + 
+    (section->update_gallery -
+      (parent_member_access_disabled + parent_group_access_disabled + parent_tenant_access_disabled + parent_public_access_disabled)) + 
+    editor + group_editor + tenant_editor
+}
+
+definition section {
+  relation gallery: gallery
+
+  permission gallery_member = gallery->gallery_member
+  permission group_member = gallery->group_member
+  permission tenant_member = gallery->tenant_member
+  permission public_member = gallery->public_member
+
+  permission folder_member_access_disabled = gallery->folder_member_access_disabled
+  permission folder_group_access_disabled = gallery->folder_group_access_disabled
+  permission folder_tenant_access_disabled = gallery->folder_tenant_access_disabled
+  permission folder_public_access_disabled = gallery->folder_public_access_disabled
+
+  permission retrieve_gallery = gallery->retrieve
+  permission update_gallery = gallery->update
+}

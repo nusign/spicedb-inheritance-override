@@ -1,0 +1,99 @@
+relationships: |
+  tenant:tenant#member@user:tenant_member
+  group:gallery_group_viewer#user@user:gallery_group_viewer
+  group:folder_group_viewer#user@user:folder_group_viewer
+
+  folder:folder#viewer@user:folder_viewer
+  folder:folder#editor@user:folder_editor
+  folder:folder#group_viewer@group:folder_group_viewer#membership
+  folder:folder#tenant_viewer@tenant:tenant#member
+
+  gallery:gallery#folder@folder:folder
+  gallery:gallery#viewer@user:gallery_viewer
+  gallery:gallery#group_viewer@group:gallery_group_viewer#membership
+  section:section#gallery@gallery:gallery
+
+  gallery:child_gallery#section@section:section
+
+  gallery:upgraded_tenant_access_editor_child_gallery#section@section:section
+  gallery:upgraded_tenant_access_editor_child_gallery#tenant_editor@tenant:tenant#member
+  gallery:upgraded_tenant_access_editor_child_gallery#tenant_inheritance_disabled@tenant:tenant#member
+
+  gallery:detached_from_folder_tenant_access_no_access#folder@folder:folder
+  gallery:detached_from_folder_tenant_access_no_access#viewer@user:gallery_viewer
+  gallery:detached_from_folder_tenant_access_no_access#tenant_inheritance_disabled@tenant:tenant#member
+
+  gallery:detached_from_folder_tenant_access_viewer#folder@folder:folder
+  gallery:detached_from_folder_tenant_access_viewer#viewer@user:gallery_viewer
+  gallery:detached_from_folder_tenant_access_viewer#tenant_viewer@tenant:tenant#member
+  gallery:detached_from_folder_tenant_access_viewer#tenant_inheritance_disabled@tenant:tenant#member
+
+  gallery:detached_from_parent_gallery_tenant_access_no_access#section@section:section
+  gallery:detached_from_parent_gallery_tenant_access_no_access#tenant_inheritance_disabled@tenant:tenant#member
+
+  gallery:detached_from_gallery_member_no_access#section@section:section
+  gallery:detached_from_gallery_member_no_access#member_inheritance_disabled@user:gallery_viewer
+
+  gallery:detached_from_group_member_no_access#section@section:section
+  gallery:detached_from_group_member_no_access#group_inheritance_disabled@group:folder_group_viewer#membership
+assertions:
+  assertTrue:
+    # Viewers should have viewer access on detached gallery in folder
+    - gallery:gallery#retrieve@user:folder_viewer
+    - gallery:gallery#retrieve@user:folder_group_viewer
+    - gallery:gallery#retrieve@user:gallery_viewer
+    - gallery:gallery#retrieve@user:gallery_group_viewer
+    # Viewers should have viewer access on child gallery
+    - gallery:child_gallery#retrieve@user:folder_viewer
+    - gallery:child_gallery#retrieve@user:folder_group_viewer
+    - gallery:child_gallery#retrieve@user:gallery_viewer
+    - gallery:child_gallery#retrieve@user:gallery_group_viewer
+    - gallery:child_gallery#retrieve@user:tenant_member
+    # Test child gallery with tenant access higher than parent gallery
+    - gallery:upgraded_tenant_access_editor_child_gallery#retrieve@user:folder_viewer
+    - gallery:upgraded_tenant_access_editor_child_gallery#retrieve@user:folder_group_viewer
+    - gallery:upgraded_tenant_access_editor_child_gallery#retrieve@user:gallery_viewer
+    - gallery:upgraded_tenant_access_editor_child_gallery#retrieve@user:gallery_group_viewer
+    - gallery:upgraded_tenant_access_editor_child_gallery#retrieve@user:tenant_member
+    - gallery:upgraded_tenant_access_editor_child_gallery#update@user:tenant_member
+    # Test detached gallery from folder with no access for tenant members
+    - gallery:detached_from_folder_tenant_access_no_access#retrieve@user:folder_viewer
+    - gallery:detached_from_folder_tenant_access_no_access#retrieve@user:folder_editor
+    - gallery:detached_from_folder_tenant_access_no_access#retrieve@user:folder_group_viewer
+    - gallery:detached_from_folder_tenant_access_no_access#retrieve@user:gallery_viewer
+    # Test detached gallery from folder but with enabled viewer access for tenant members
+    - gallery:detached_from_folder_tenant_access_viewer#retrieve@user:folder_viewer
+    - gallery:detached_from_folder_tenant_access_viewer#retrieve@user:folder_editor
+    - gallery:detached_from_folder_tenant_access_viewer#retrieve@user:folder_group_viewer
+    - gallery:detached_from_folder_tenant_access_viewer#retrieve@user:gallery_viewer
+    - gallery:detached_from_folder_tenant_access_viewer#retrieve@user:tenant_member
+    - gallery:detached_from_folder_tenant_access_viewer#update@user:folder_editor
+    # Test detached gallery from parent gallery with no access for tenant members
+    - gallery:detached_from_parent_gallery_tenant_access_no_access#retrieve@user:folder_viewer
+    - gallery:detached_from_parent_gallery_tenant_access_no_access#retrieve@user:folder_editor
+    - gallery:detached_from_parent_gallery_tenant_access_no_access#retrieve@user:folder_group_viewer
+    - gallery:detached_from_parent_gallery_tenant_access_no_access#retrieve@user:gallery_viewer
+    - gallery:detached_from_parent_gallery_tenant_access_no_access#retrieve@user:gallery_group_viewer
+    # Test detached gallery from gallery member with no access
+    - gallery:detached_from_gallery_member_no_access#retrieve@user:folder_viewer
+    - gallery:detached_from_gallery_member_no_access#retrieve@user:folder_editor
+    - gallery:detached_from_gallery_member_no_access#retrieve@user:folder_group_viewer
+    - gallery:detached_from_gallery_member_no_access#retrieve@user:gallery_group_viewer
+    - gallery:detached_from_gallery_member_no_access#retrieve@user:tenant_member
+    # Test detached gallery from group member with no access
+    - gallery:detached_from_group_member_no_access#retrieve@user:folder_viewer
+    - gallery:detached_from_group_member_no_access#retrieve@user:folder_editor
+    - gallery:detached_from_group_member_no_access#retrieve@user:gallery_viewer
+    - gallery:detached_from_group_member_no_access#retrieve@user:gallery_group_viewer
+    - gallery:detached_from_group_member_no_access#retrieve@user:tenant_member
+  assertFalse:
+    # Tenant member should have not access on detached gallery in folder when tenant access on gallery set to no_access
+    - gallery:detached_from_folder_tenant_access_no_access#retrieve@user:tenant_member
+    # Tenant member should have not access on child gallery
+    - gallery:child_gallery#update@user:tenant_member
+    # Test detached gallery from parent gallery with no access for tenant members
+    - gallery:detached_from_parent_gallery_tenant_access_no_access#retrieve@user:tenant_member
+    # Test detached gallery from gallery member with no access
+    - gallery:detached_from_gallery_member_no_access#retrieve@user:gallery_viewer
+    # Test detached gallery from group member with no access
+    - gallery:detached_from_group_member_no_access#retrieve@user:folder_group_viewer
