@@ -70,10 +70,10 @@ definition gallery {
 
   relation owner: user
 
-  relation viewer: user
-  relation reviewer: user
-  relation editor: user
-  relation member_inheritance_disabled: user
+  relation gallery_viewer: user
+  relation gallery_reviewer: user
+  relation gallery_editor: user
+  relation direct_member_inheritance_disabled: user
 
   relation group_viewer: group#membership
   relation group_reviewer: group#membership
@@ -89,48 +89,28 @@ definition gallery {
   relation public_reviewer: user:* | user:* with password_protected | guest:* | guest:* with password_protected
   relation public_inheritance_disabled: user:* | guest:* | anonymous:*
 
-  permission gallery_member = viewer + reviewer + editor
-  permission group_member = group_viewer + group_reviewer + group_editor
-  permission tenant_member = tenant_viewer + tenant_reviewer + tenant_editor
-  permission public_member = public_viewer + public_reviewer
-  permission authenticated = gallery_member + group_member + tenant_member + public_reviewer
+  permission viewer = gallery_viewer + group_viewer + tenant_viewer + public_viewer
+  permission reviewer = gallery_reviewer + group_reviewer + tenant_reviewer + public_reviewer
+  permission editor = gallery_editor + group_editor + tenant_editor
 
-  permission folder_member_access_disabled = folder->folder_member & member_inheritance_disabled
-  permission folder_group_access_disabled = folder->group_member & group_inheritance_disabled
-  permission folder_tenant_access_disabled = folder->tenant_member & tenant_inheritance_disabled
-  permission folder_public_access_disabled = folder->public_member & public_inheritance_disabled
+  permission direct_member = folder->folder_member + section->direct_member + gallery_viewer + gallery_reviewer + gallery_editor
+  permission group_member = folder->group_member + section->group_member + group_viewer + group_reviewer + group_editor
+  permission tenant_member = folder->tenant_member + section->tenant_member + tenant_viewer + tenant_reviewer + tenant_editor
+  permission public_member = folder->public_member + section->public_member + public_viewer + public_reviewer
 
-  permission parent_member_access_disabled = section->gallery_member & member_inheritance_disabled
-  permission parent_group_access_disabled = section->group_member & group_inheritance_disabled
-  permission parent_tenant_access_disabled = section->tenant_member & tenant_inheritance_disabled
-  permission parent_public_access_disabled = section->public_member & public_inheritance_disabled
+  permission inheritance_disabled = (direct_member & direct_member_inheritance_disabled) + (group_member & group_inheritance_disabled) + (tenant_member & tenant_inheritance_disabled) + (public_member & public_inheritance_disabled)
 
-  permission retrieve = tenant->administratorship + 
-    (folder->retrieve_gallery - 
-      (folder_member_access_disabled + folder_group_access_disabled + folder_tenant_access_disabled + folder_public_access_disabled)) + 
-    (section->retrieve_gallery -
-      (parent_member_access_disabled + parent_group_access_disabled + parent_tenant_access_disabled + parent_public_access_disabled)) + 
-    gallery_member + group_member + tenant_member + public_member
-  permission update = tenant->administratorship + 
-    (folder->update_gallery - 
-      (folder_member_access_disabled + folder_group_access_disabled + folder_tenant_access_disabled + folder_public_access_disabled)) + 
-    (section->update_gallery -
-      (parent_member_access_disabled + parent_group_access_disabled + parent_tenant_access_disabled + parent_public_access_disabled)) + 
-    editor + group_editor + tenant_editor
+  permission retrieve = tenant->administratorship + (folder->retrieve_gallery + section->retrieve_gallery - inheritance_disabled) + viewer + reviewer + editor
+  permission update = tenant->administratorship + (folder->update_gallery + section->update_gallery - inheritance_disabled) + editor
 }
 
 definition section {
   relation gallery: gallery
 
-  permission gallery_member = gallery->gallery_member
+  permission direct_member = gallery->direct_member
   permission group_member = gallery->group_member
   permission tenant_member = gallery->tenant_member
   permission public_member = gallery->public_member
-
-  permission folder_member_access_disabled = gallery->folder_member_access_disabled
-  permission folder_group_access_disabled = gallery->folder_group_access_disabled
-  permission folder_tenant_access_disabled = gallery->folder_tenant_access_disabled
-  permission folder_public_access_disabled = gallery->folder_public_access_disabled
 
   permission retrieve_gallery = gallery->retrieve
   permission update_gallery = gallery->update
