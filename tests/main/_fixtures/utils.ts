@@ -3,7 +3,7 @@ export type PublicAccessLevel = 'no_access' | 'view_only' | 'review';
 
 export const accessLevelToRelation = (
   accessLevel: AccessLevel,
-): string | null => {
+): string => {
   switch (accessLevel) {
     case 'view_only':
       return 'viewer';
@@ -12,7 +12,7 @@ export const accessLevelToRelation = (
     case 'edit':
       return 'editor';
     case 'no_access':
-      return null;
+      return 'no_access';
     default:
       throw new Error(`Invalid access level: ${accessLevel}`);
   }
