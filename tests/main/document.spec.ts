@@ -18,29 +18,29 @@ t.test('Document', (t) => {
       .write('member', organizationMember.asSubjectRef()),
   );
 
-  t.test('Top level gallery', (t) => {
-    t.test('Document with tenant access no access', (t) => {
-      const galleryFixture = t.relationship(
+  t.test('Top level document', (t) => {
+    t.test('Document with organization access no access', (t) => {
+      const documentFixture = t.relationship(
         new Document()
           .writeOrganization(organization)
           .setOrganizationAccess(organization, 'no_access'),
       );
 
-      t.assert(organizationOwner).has('retrieve').on(galleryFixture);
-      t.assert(organizationMember).not.has('retrieve').on(galleryFixture);
+      t.assert(organizationOwner).has('retrieve').on(documentFixture);
+      t.assert(organizationMember).not.has('retrieve').on(documentFixture);
       t.end();
     });
 
-    t.test('Document with tenant access view only', (t) => {
-      const galleryFixture = t.relationship(
+    t.test('Document with organization access view only', (t) => {
+      const documentFixture = t.relationship(
         new Document()
           .writeOrganization(organization)
           .setOrganizationAccess(organization, 'view_only'),
       );
 
-      t.assert(organizationOwner).has('update').on(galleryFixture);
-      t.assert(organizationMember).has('retrieve').on(galleryFixture);
-      t.assert(organizationMember).not.has('update').on(galleryFixture);
+      t.assert(organizationOwner).has('update').on(documentFixture);
+      t.assert(organizationMember).has('retrieve').on(documentFixture);
+      t.assert(organizationMember).not.has('update').on(documentFixture);
       t.end();
     });
 
@@ -72,7 +72,7 @@ t.test('Document', (t) => {
 
   t.test('Document in folder', (t) => {
     t.test('should select the higher permission possible', (t) => {
-      t.test('if gallery tenant and public access both view_only', (t) => {
+      t.test('if document organization and public access both view_only', (t) => {
         const folder = t.relationship(
           new Folder()
             .writeOrganization(organization)
@@ -87,7 +87,7 @@ t.test('Document', (t) => {
         t.end();
       });
 
-      t.test('if gallery tenant access view_only', (t) => {
+      t.test('if document organization access view_only', (t) => {
         const folder = t.relationship(
           new Folder()
             .writeOrganization(organization)
@@ -105,7 +105,7 @@ t.test('Document', (t) => {
         t.end();
       });
 
-      t.test('if gallery public access no_access', (t) => {
+      t.test('if document public access no_access', (t) => {
         const folder = t.relationship(
           new Folder()
             .writeOrganization(organization)
@@ -121,7 +121,7 @@ t.test('Document', (t) => {
         t.end();
       });
 
-      t.test('if gallery tenant and public access edit', (t) => {
+      t.test('if document organization and public access edit', (t) => {
         const folder = t.relationship(
           new Folder()
             .writeOrganization(organization)
@@ -147,16 +147,16 @@ t.test('Document', (t) => {
     t.end();
   });
 
-  t.test('Child gallery with parent gallery in the folder', (t) => {
-    const parentGalleryViewer = t.relationship(new User());
+  t.test('Child document with parent document in the folder', (t) => {
+    const parentdocumentViewer = t.relationship(new User());
     const folderGroupViewerMember = t.relationship(new User());
-    const parentGalleryGroupViewerMember = t.relationship(new User());
+    const parentdocumentGroupViewerMember = t.relationship(new User());
 
     const folderGroupViewer = t.relationship(
       new Group().writeUser(folderGroupViewerMember),
     );
-    const parentGalleryGroupViewer = t.relationship(
-      new Group().writeUser(parentGalleryGroupViewerMember),
+    const parentdocumentGroupViewer = t.relationship(
+      new Group().writeUser(parentdocumentGroupViewerMember),
     );
 
     const folderFixture = t.relationship(
@@ -173,51 +173,51 @@ t.test('Document', (t) => {
       new Document()
         .writeOrganization(organization)
         .writeFolder(folderFixture)
-        .addDirectMember(parentGalleryViewer, 'view_only')
-        .addGroup(parentGalleryGroupViewer, 'view_only'),
+        .addDirectMember(parentdocumentViewer, 'view_only')
+        .addGroup(parentdocumentGroupViewer, 'view_only'),
     );
 
     t.test(
-      'child gallery should inherit permissions of parent gallery and its parent folder',
+      'child document should inherit permissions of parent document and its parent folder',
       (t) => {
-        const childGallery = t.relationship(
+        const childdocument = t.relationship(
           new Document()
             .writeOrganization(organization)
             .addParent(parentDocument),
         );
 
-        t.assert(organizationMember).has('retrieve').on(childGallery);
-        t.assert(organizationMember).not.has('create_comment').on(childGallery);
-        t.assert(organizationMember).not.has('update').on(childGallery);
+        t.assert(organizationMember).has('retrieve').on(childdocument);
+        t.assert(organizationMember).not.has('create_comment').on(childdocument);
+        t.assert(organizationMember).not.has('update').on(childdocument);
 
-        t.assert(publicUser).has('retrieve').on(childGallery);
-        t.assert(publicUser).not.has('create_comment').on(childGallery);
-        t.assert(guest).has('retrieve').on(childGallery);
-        t.assert(anonymous).has('retrieve').on(childGallery);
+        t.assert(publicUser).has('retrieve').on(childdocument);
+        t.assert(publicUser).not.has('create_comment').on(childdocument);
+        t.assert(guest).has('retrieve').on(childdocument);
+        t.assert(anonymous).has('retrieve').on(childdocument);
 
-        t.assert(folderViewer).has('retrieve').on(childGallery);
-        t.assert(folderViewer).not.has('update').on(childGallery);
+        t.assert(folderViewer).has('retrieve').on(childdocument);
+        t.assert(folderViewer).not.has('update').on(childdocument);
 
-        t.assert(folderEditor).has('update').on(childGallery);
+        t.assert(folderEditor).has('update').on(childdocument);
 
-        t.assert(folderGroupViewerMember).has('retrieve').on(childGallery);
-        t.assert(folderGroupViewerMember).not.has('update').on(childGallery);
+        t.assert(folderGroupViewerMember).has('retrieve').on(childdocument);
+        t.assert(folderGroupViewerMember).not.has('update').on(childdocument);
 
-        t.assert(parentGalleryViewer).has('retrieve').on(childGallery);
-        t.assert(parentGalleryViewer).not.has('update').on(childGallery);
+        t.assert(parentdocumentViewer).has('retrieve').on(childdocument);
+        t.assert(parentdocumentViewer).not.has('update').on(childdocument);
 
-        t.assert(parentGalleryGroupViewerMember)
+        t.assert(parentdocumentGroupViewerMember)
           .has('retrieve')
-          .on(childGallery);
-        t.assert(parentGalleryGroupViewerMember)
+          .on(childdocument);
+        t.assert(parentdocumentGroupViewerMember)
           .not.has('update')
-          .on(childGallery);
+          .on(childdocument);
 
         t.end();
       },
     );
 
-    t.test('child gallery should expand tenant access to editor', (t) => {
+    t.test('child document should expand organization access to editor', (t) => {
       const childDocument = t.relationship(
         new Document()
           .writeOrganization(organization)
@@ -242,11 +242,11 @@ t.test('Document', (t) => {
       t.assert(folderGroupViewerMember).has('retrieve').on(childDocument);
       t.assert(folderGroupViewerMember).not.has('update').on(childDocument);
 
-      t.assert(parentGalleryViewer).has('retrieve').on(childDocument);
-      t.assert(parentGalleryViewer).not.has('update').on(childDocument);
+      t.assert(parentdocumentViewer).has('retrieve').on(childDocument);
+      t.assert(parentdocumentViewer).not.has('update').on(childDocument);
 
-      t.assert(parentGalleryGroupViewerMember).has('retrieve').on(childDocument);
-      t.assert(parentGalleryGroupViewerMember)
+      t.assert(parentdocumentGroupViewerMember).has('retrieve').on(childDocument);
+      t.assert(parentdocumentGroupViewerMember)
         .not.has('update')
         .on(childDocument);
 
@@ -254,7 +254,7 @@ t.test('Document', (t) => {
     });
 
     t.test(
-      'child gallery should not remove tenant access if public access is view_only remains on the folder level',
+      'child document should not remove organization access if public access is view_only remains on the folder level',
       (t) => {
         const childDocument = t.relationship(
           new Document()
@@ -280,13 +280,13 @@ t.test('Document', (t) => {
         t.assert(folderGroupViewerMember).has('retrieve').on(childDocument);
         t.assert(folderGroupViewerMember).not.has('update').on(childDocument);
 
-        t.assert(parentGalleryViewer).has('retrieve').on(childDocument);
-        t.assert(parentGalleryViewer).not.has('update').on(childDocument);
+        t.assert(parentdocumentViewer).has('retrieve').on(childDocument);
+        t.assert(parentdocumentViewer).not.has('update').on(childDocument);
 
-        t.assert(parentGalleryGroupViewerMember)
+        t.assert(parentdocumentGroupViewerMember)
           .has('retrieve')
           .on(childDocument);
-        t.assert(parentGalleryGroupViewerMember)
+        t.assert(parentdocumentGroupViewerMember)
           .not.has('update')
           .on(childDocument);
 
@@ -295,7 +295,7 @@ t.test('Document', (t) => {
     );
 
     t.test(
-      'child gallery should remove tenant access if public access is also no_access',
+      'child document should remove organization access if public access is also no_access',
       (t) => {
         const childDocument = t.relationship(
           new Document()
@@ -321,13 +321,13 @@ t.test('Document', (t) => {
         t.assert(folderGroupViewerMember).has('retrieve').on(childDocument);
         t.assert(folderGroupViewerMember).not.has('update').on(childDocument);
 
-        t.assert(parentGalleryViewer).has('retrieve').on(childDocument);
-        t.assert(parentGalleryViewer).not.has('update').on(childDocument);
+        t.assert(parentdocumentViewer).has('retrieve').on(childDocument);
+        t.assert(parentdocumentViewer).not.has('update').on(childDocument);
 
-        t.assert(parentGalleryGroupViewerMember)
+        t.assert(parentdocumentGroupViewerMember)
           .has('retrieve')
           .on(childDocument);
-        t.assert(parentGalleryGroupViewerMember)
+        t.assert(parentdocumentGroupViewerMember)
           .not.has('update')
           .on(childDocument);
 
@@ -335,7 +335,7 @@ t.test('Document', (t) => {
       },
     );
 
-    t.test('child gallery should expand public access to reviewer', (t) => {
+    t.test('child document should expand public access to reviewer', (t) => {
       const childDocument = t.relationship(
         new Document()
           .writeOrganization(organization)
@@ -360,18 +360,18 @@ t.test('Document', (t) => {
       t.assert(folderGroupViewerMember).has('retrieve').on(childDocument);
       t.assert(folderGroupViewerMember).not.has('update').on(childDocument);
 
-      t.assert(parentGalleryViewer).has('retrieve').on(childDocument);
-      t.assert(parentGalleryViewer).not.has('update').on(childDocument);
+      t.assert(parentdocumentViewer).has('retrieve').on(childDocument);
+      t.assert(parentdocumentViewer).not.has('update').on(childDocument);
 
-      t.assert(parentGalleryGroupViewerMember).has('retrieve').on(childDocument);
-      t.assert(parentGalleryGroupViewerMember)
+      t.assert(parentdocumentGroupViewerMember).has('retrieve').on(childDocument);
+      t.assert(parentdocumentGroupViewerMember)
         .not.has('update')
         .on(childDocument);
 
       t.end();
     });
 
-    t.test('child gallery should remove public access', (t) => {
+    t.test('child document should remove public access', (t) => {
       const childDocument = t.relationship(
         new Document()
           .writeOrganization(organization)
@@ -396,11 +396,11 @@ t.test('Document', (t) => {
       t.assert(folderGroupViewerMember).has('retrieve').on(childDocument);
       t.assert(folderGroupViewerMember).not.has('update').on(childDocument);
 
-      t.assert(parentGalleryViewer).has('retrieve').on(childDocument);
-      t.assert(parentGalleryViewer).not.has('update').on(childDocument);
+      t.assert(parentdocumentViewer).has('retrieve').on(childDocument);
+      t.assert(parentdocumentViewer).not.has('update').on(childDocument);
 
-      t.assert(parentGalleryGroupViewerMember).has('retrieve').on(childDocument);
-      t.assert(parentGalleryGroupViewerMember)
+      t.assert(parentdocumentGroupViewerMember).has('retrieve').on(childDocument);
+      t.assert(parentdocumentGroupViewerMember)
         .not.has('update')
         .on(childDocument);
 
@@ -408,7 +408,7 @@ t.test('Document', (t) => {
     });
 
     t.test(
-      'child gallery should expand access for folder member viewer',
+      'child document should expand access for folder member viewer',
       (t) => {
         const childDocument = t.relationship(
           new Document()
@@ -433,13 +433,13 @@ t.test('Document', (t) => {
         t.assert(folderGroupViewerMember).has('retrieve').on(childDocument);
         t.assert(folderGroupViewerMember).not.has('update').on(childDocument);
 
-        t.assert(parentGalleryViewer).has('retrieve').on(childDocument);
-        t.assert(parentGalleryViewer).not.has('update').on(childDocument);
+        t.assert(parentdocumentViewer).has('retrieve').on(childDocument);
+        t.assert(parentdocumentViewer).not.has('update').on(childDocument);
 
-        t.assert(parentGalleryGroupViewerMember)
+        t.assert(parentdocumentGroupViewerMember)
           .has('retrieve')
           .on(childDocument);
-        t.assert(parentGalleryGroupViewerMember)
+        t.assert(parentdocumentGroupViewerMember)
           .not.has('update')
           .on(childDocument);
 
@@ -448,7 +448,7 @@ t.test('Document', (t) => {
     );
 
     t.test(
-      'child gallery should remove access for folder member viewer',
+      'child document should remove access for folder member viewer',
       (t) => {
         const childDocument = t.relationship(
           new Document()
@@ -474,13 +474,13 @@ t.test('Document', (t) => {
         t.assert(folderGroupViewerMember).has('retrieve').on(childDocument);
         t.assert(folderGroupViewerMember).not.has('update').on(childDocument);
 
-        t.assert(parentGalleryViewer).has('retrieve').on(childDocument);
-        t.assert(parentGalleryViewer).not.has('update').on(childDocument);
+        t.assert(parentdocumentViewer).has('retrieve').on(childDocument);
+        t.assert(parentdocumentViewer).not.has('update').on(childDocument);
 
-        t.assert(parentGalleryGroupViewerMember)
+        t.assert(parentdocumentGroupViewerMember)
           .has('retrieve')
           .on(childDocument);
-        t.assert(parentGalleryGroupViewerMember)
+        t.assert(parentdocumentGroupViewerMember)
           .not.has('update')
           .on(childDocument);
 
@@ -489,7 +489,7 @@ t.test('Document', (t) => {
     );
 
     t.test(
-      'child gallery should expand access for folder group member viewer',
+      'child document should expand access for folder group member viewer',
       (t) => {
         const childDocument = t.relationship(
           new Document()
@@ -514,13 +514,13 @@ t.test('Document', (t) => {
         t.assert(folderGroupViewerMember).has('retrieve').on(childDocument);
         t.assert(folderGroupViewerMember).has('update').on(childDocument);
 
-        t.assert(parentGalleryViewer).has('retrieve').on(childDocument);
-        t.assert(parentGalleryViewer).not.has('update').on(childDocument);
+        t.assert(parentdocumentViewer).has('retrieve').on(childDocument);
+        t.assert(parentdocumentViewer).not.has('update').on(childDocument);
 
-        t.assert(parentGalleryGroupViewerMember)
+        t.assert(parentdocumentGroupViewerMember)
           .has('retrieve')
           .on(childDocument);
-        t.assert(parentGalleryGroupViewerMember)
+        t.assert(parentdocumentGroupViewerMember)
           .not.has('update')
           .on(childDocument);
 
@@ -529,7 +529,7 @@ t.test('Document', (t) => {
     );
 
     t.test(
-      'child gallery should remove access for folder group member viewer',
+      'child document should remove access for folder group member viewer',
       (t) => {
         const childDocument = t.relationship(
           new Document()
@@ -555,13 +555,13 @@ t.test('Document', (t) => {
         t.assert(folderGroupViewerMember).not.has('retrieve').on(childDocument);
         t.assert(folderGroupViewerMember).not.has('update').on(childDocument);
 
-        t.assert(parentGalleryViewer).has('retrieve').on(childDocument);
-        t.assert(parentGalleryViewer).not.has('update').on(childDocument);
+        t.assert(parentdocumentViewer).has('retrieve').on(childDocument);
+        t.assert(parentdocumentViewer).not.has('update').on(childDocument);
 
-        t.assert(parentGalleryGroupViewerMember)
+        t.assert(parentdocumentGroupViewerMember)
           .has('retrieve')
           .on(childDocument);
-        t.assert(parentGalleryGroupViewerMember)
+        t.assert(parentdocumentGroupViewerMember)
           .not.has('update')
           .on(childDocument);
 
@@ -570,12 +570,12 @@ t.test('Document', (t) => {
     );
 
     t.test(
-      'child gallery should expand access for gallery member viewer',
+      'child document should expand access for document member viewer',
       (t) => {
         const childDocument = t.relationship(
           new Document()
             .writeOrganization(organization)
-            .addDirectMember(parentGalleryViewer, 'edit')
+            .addDirectMember(parentdocumentViewer, 'edit')
             .addParent(parentDocument),
         );
 
@@ -595,13 +595,13 @@ t.test('Document', (t) => {
         t.assert(folderGroupViewerMember).has('retrieve').on(childDocument);
         t.assert(folderGroupViewerMember).not.has('update').on(childDocument);
 
-        t.assert(parentGalleryViewer).has('retrieve').on(childDocument);
-        t.assert(parentGalleryViewer).has('update').on(childDocument);
+        t.assert(parentdocumentViewer).has('retrieve').on(childDocument);
+        t.assert(parentdocumentViewer).has('update').on(childDocument);
 
-        t.assert(parentGalleryGroupViewerMember)
+        t.assert(parentdocumentGroupViewerMember)
           .has('retrieve')
           .on(childDocument);
-        t.assert(parentGalleryGroupViewerMember)
+        t.assert(parentdocumentGroupViewerMember)
           .not.has('update')
           .on(childDocument);
 
@@ -610,12 +610,12 @@ t.test('Document', (t) => {
     );
 
     t.test(
-      'child gallery should remove access for gallery member viewer',
+      'child document should remove access for document member viewer',
       (t) => {
         const childDocument = t.relationship(
           new Document()
             .writeOrganization(organization)
-            .addDirectMember(parentGalleryViewer, 'no_access')
+            .addDirectMember(parentdocumentViewer, 'no_access')
             .setPublicAccess('no_access')
             .addParent(parentDocument),
         );
@@ -636,13 +636,13 @@ t.test('Document', (t) => {
         t.assert(folderGroupViewerMember).has('retrieve').on(childDocument);
         t.assert(folderGroupViewerMember).not.has('update').on(childDocument);
 
-        t.assert(parentGalleryViewer).not.has('retrieve').on(childDocument);
-        t.assert(parentGalleryViewer).not.has('update').on(childDocument);
+        t.assert(parentdocumentViewer).not.has('retrieve').on(childDocument);
+        t.assert(parentdocumentViewer).not.has('update').on(childDocument);
 
-        t.assert(parentGalleryGroupViewerMember)
+        t.assert(parentdocumentGroupViewerMember)
           .has('retrieve')
           .on(childDocument);
-        t.assert(parentGalleryGroupViewerMember)
+        t.assert(parentdocumentGroupViewerMember)
           .not.has('update')
           .on(childDocument);
 
@@ -651,12 +651,12 @@ t.test('Document', (t) => {
     );
 
     t.test(
-      'child gallery should expand access for parent gallery group member',
+      'child document should expand access for parent document group member',
       (t) => {
         const childDocument = t.relationship(
           new Document()
             .writeOrganization(organization)
-            .addGroup(parentGalleryGroupViewer, 'edit')
+            .addGroup(parentdocumentGroupViewer, 'edit')
             .addParent(parentDocument),
         );
 
@@ -676,25 +676,25 @@ t.test('Document', (t) => {
         t.assert(folderGroupViewerMember).has('retrieve').on(childDocument);
         t.assert(folderGroupViewerMember).not.has('update').on(childDocument);
 
-        t.assert(parentGalleryViewer).has('retrieve').on(childDocument);
-        t.assert(parentGalleryViewer).not.has('update').on(childDocument);
+        t.assert(parentdocumentViewer).has('retrieve').on(childDocument);
+        t.assert(parentdocumentViewer).not.has('update').on(childDocument);
 
-        t.assert(parentGalleryGroupViewerMember)
+        t.assert(parentdocumentGroupViewerMember)
           .has('retrieve')
           .on(childDocument);
-        t.assert(parentGalleryGroupViewerMember).has('update').on(childDocument);
+        t.assert(parentdocumentGroupViewerMember).has('update').on(childDocument);
 
         t.end();
       },
     );
 
     t.test(
-      'child gallery should remove access for parent gallery group member',
+      'child document should remove access for parent document group member',
       (t) => {
         const childDocument = t.relationship(
           new Document()
             .writeOrganization(organization)
-            .addGroup(parentGalleryGroupViewer, 'no_access')
+            .addGroup(parentdocumentGroupViewer, 'no_access')
             .setPublicAccess('no_access')
             .addParent(parentDocument),
         );
@@ -715,13 +715,13 @@ t.test('Document', (t) => {
         t.assert(folderGroupViewerMember).has('retrieve').on(childDocument);
         t.assert(folderGroupViewerMember).not.has('update').on(childDocument);
 
-        t.assert(parentGalleryViewer).has('retrieve').on(childDocument);
-        t.assert(parentGalleryViewer).not.has('update').on(childDocument);
+        t.assert(parentdocumentViewer).has('retrieve').on(childDocument);
+        t.assert(parentdocumentViewer).not.has('update').on(childDocument);
 
-        t.assert(parentGalleryGroupViewerMember)
+        t.assert(parentdocumentGroupViewerMember)
           .not.has('retrieve')
           .on(childDocument);
-        t.assert(parentGalleryGroupViewerMember)
+        t.assert(parentdocumentGroupViewerMember)
           .not.has('update')
           .on(childDocument);
 
@@ -733,12 +733,12 @@ t.test('Document', (t) => {
   });
 
   t.test('Document with public access', (t) => {
-    const galleryFixture = t.relationship(
+    const documentFixture = t.relationship(
       new Document().writeOrganization(organization).setPublicAccess('review'),
     );
 
-    t.assert(publicUser).has('retrieve').on(galleryFixture);
-    t.assert(publicUser).not.has('update').on(galleryFixture);
+    t.assert(publicUser).has('retrieve').on(documentFixture);
+    t.assert(publicUser).not.has('update').on(documentFixture);
 
     t.end();
   });
@@ -749,78 +749,78 @@ t.test('Document', (t) => {
     );
 
     t.test('Document should inherit folder public access', (t) => {
-      const galleryFixture = t.relationship(
+      const documentFixture = t.relationship(
         new Document().writeOrganization(organization).writeFolder(folderFixture),
       );
-      t.assert(publicUser).has('retrieve').on(galleryFixture);
-      t.assert(publicUser).not.has('update').on(galleryFixture);
-      t.assert(organizationMember).has('retrieve').on(galleryFixture);
-      t.assert(organizationMember).not.has('update').on(galleryFixture);
+      t.assert(publicUser).has('retrieve').on(documentFixture);
+      t.assert(publicUser).not.has('update').on(documentFixture);
+      t.assert(organizationMember).has('retrieve').on(documentFixture);
+      t.assert(organizationMember).not.has('update').on(documentFixture);
       t.end();
     });
 
     t.test('Document should expand folder public access', (t) => {
-      const galleryFixture = t.relationship(
+      const documentFixture = t.relationship(
         new Document()
           .writeOrganization(organization)
           .setPublicAccess('review')
           .writeFolder(folderFixture),
       );
-      t.assert(publicUser).has('create_comment').on(galleryFixture);
-      t.assert(publicUser).not.has('update').on(galleryFixture);
-      t.assert(organizationMember).has('create_comment').on(galleryFixture);
-      t.assert(organizationMember).not.has('update').on(galleryFixture);
+      t.assert(publicUser).has('create_comment').on(documentFixture);
+      t.assert(publicUser).not.has('update').on(documentFixture);
+      t.assert(organizationMember).has('create_comment').on(documentFixture);
+      t.assert(organizationMember).not.has('update').on(documentFixture);
       t.end();
     });
 
     t.test('Document should remove folder public access', (t) => {
-      const galleryFixture = t.relationship(
+      const documentFixture = t.relationship(
         new Document()
           .writeOrganization(organization)
           .setPublicAccess('no_access')
           .writeFolder(folderFixture),
       );
-      t.assert(publicUser).not.has('create_comment').on(galleryFixture);
-      t.assert(organizationMember).not.has('create_comment').on(galleryFixture);
+      t.assert(publicUser).not.has('create_comment').on(documentFixture);
+      t.assert(organizationMember).not.has('create_comment').on(documentFixture);
       t.end();
     });
 
     t.end();
   });
 
-  t.test('Document with combined public and tenant access', (t) => {
+  t.test('Document with combined public and organization access', (t) => {
     t.test(
-      'Document with public access view_only and tenant access edit',
+      'Document with public access view_only and organization access edit',
       (t) => {
-        const galleryFixture = t.relationship(
+        const documentFixture = t.relationship(
           new Document()
             .writeOrganization(organization)
             .setPublicAccess('view_only')
             .setOrganizationAccess(organization, 'edit'),
         );
 
-        t.assert(publicUser).has('retrieve').on(galleryFixture);
-        t.assert(publicUser).not.has('update').on(galleryFixture);
-        t.assert(organizationMember).has('retrieve').on(galleryFixture);
-        t.assert(organizationMember).has('update').on(galleryFixture);
+        t.assert(publicUser).has('retrieve').on(documentFixture);
+        t.assert(publicUser).not.has('update').on(documentFixture);
+        t.assert(organizationMember).has('retrieve').on(documentFixture);
+        t.assert(organizationMember).has('update').on(documentFixture);
         t.end();
       },
     );
 
     t.test(
-      'Document with public access view only and tenant access no_access',
+      'Document with public access view only and organization access no_access',
       (t) => {
-        const galleryFixture = t.relationship(
+        const documentFixture = t.relationship(
           new Document()
             .writeOrganization(organization)
             .setPublicAccess('view_only')
             .setOrganizationAccess(organization, 'no_access'),
         );
 
-        t.assert(publicUser).has('retrieve').on(galleryFixture);
-        t.assert(publicUser).not.has('update').on(galleryFixture);
-        t.assert(organizationMember).has('retrieve').on(galleryFixture);
-        t.assert(organizationMember).not.has('update').on(galleryFixture);
+        t.assert(publicUser).has('retrieve').on(documentFixture);
+        t.assert(publicUser).not.has('update').on(documentFixture);
+        t.assert(organizationMember).has('retrieve').on(documentFixture);
+        t.assert(organizationMember).not.has('update').on(documentFixture);
         t.end();
       },
     );
@@ -828,35 +828,35 @@ t.test('Document', (t) => {
     t.end();
   });
 
-  t.test('Document with tenant member as gallery member', (t) => {
-    t.test('Tenant as gallery member access is not restricted', (t) => {
-      const gallery = t.relationship(
+  t.test('Document with organization member as document member', (t) => {
+    t.test('organization as document member access is not restricted', (t) => {
+      const document = t.relationship(
         new Document()
           .writeOrganization(organization)
           .setOrganizationAccess(organization, 'edit')
           .addDirectMember(organizationMember, 'no_access'),
       );
 
-      t.assert(organizationMember).has('retrieve').on(gallery);
+      t.assert(organizationMember).has('retrieve').on(document);
       t.end();
     });
 
-    t.test('Tenant as gallery member access is expanded', (t) => {
-      const gallery = t.relationship(
+    t.test('organization as document member access is expanded', (t) => {
+      const document = t.relationship(
         new Document()
           .writeOrganization(organization)
           .setOrganizationAccess(organization, 'view_only')
           .addDirectMember(organizationMember, 'edit'),
       );
 
-      t.assert(organizationMember).has('update').on(gallery);
+      t.assert(organizationMember).has('update').on(document);
       t.end();
     });
 
     t.end();
   });
 
-  t.test('Document in folder with tenant member as gallery member', (t) => {
+  t.test('Document in folder with organization member as document member', (t) => {
     const folderFixture = t.relationship(
       new Folder()
         .writeOrganization(organization)
@@ -864,9 +864,9 @@ t.test('Document', (t) => {
     );
 
     t.test(
-      'remove tenant and public acces while folder member still has access',
+      'remove organization and public acces while folder member still has access',
       (t) => {
-        const gallery = t.relationship(
+        const document = t.relationship(
           new Document()
             .writeOrganization(organization)
             .writeFolder(folderFixture)
@@ -874,7 +874,7 @@ t.test('Document', (t) => {
             .setPublicAccess('no_access'),
         );
 
-        t.assert(organizationMember).has('update').on(gallery);
+        t.assert(organizationMember).has('update').on(document);
         t.end();
       },
     );
@@ -882,9 +882,9 @@ t.test('Document', (t) => {
   });
 
   t.test('Deep nesting with overrides', (t) => {
-    const topLevelGalleryGroupMember = t.relationship(new User());
-    const topLevelGalleryGroup = t.relationship(
-      new Group().writeUser(topLevelGalleryGroupMember),
+    const topLeveldocumentGroupMember = t.relationship(new User());
+    const topLeveldocumentGroup = t.relationship(
+      new Group().writeUser(topLeveldocumentGroupMember),
     );
     const topLevelFolderMember = t.relationship(new User());
     const topLevelFolderFixture = t.relationship(
@@ -893,7 +893,7 @@ t.test('Document', (t) => {
         .setOrganizationAccess(organization, 'edit')
         .setPublicAccess('view_only')
         .addDirectMember(topLevelFolderMember, 'edit')
-        .addGroup(topLevelGalleryGroup, 'edit'),
+        .addGroup(topLeveldocumentGroup, 'edit'),
     );
     const midLevelFolderFixture = t.relationship(
       new Folder()
@@ -920,11 +920,11 @@ t.test('Document', (t) => {
       t.assert(organizationMember).has('update').on(subDocument);
       t.assert(publicUser).has('retrieve').on(subDocument);
       t.assert(publicUser).not.has('update').on(subDocument);
-      t.assert(topLevelGalleryGroupMember).has('update').on(subDocument);
+      t.assert(topLeveldocumentGroupMember).has('update').on(subDocument);
       t.end();
     });
 
-    t.test('overriding public and tenant access on folder', (t) => {
+    t.test('overriding public and organization access on folder', (t) => {
       const folderFixture = t.relationship(
         new Folder()
           .writeOrganization(organization)
@@ -943,11 +943,11 @@ t.test('Document', (t) => {
 
       t.test('top level folder member, and group member keep access', (t) => {
         t.assert(topLevelFolderMember).has('update').on(subDocument);
-        t.assert(topLevelGalleryGroupMember).has('update').on(subDocument);
+        t.assert(topLeveldocumentGroupMember).has('update').on(subDocument);
         t.end();
       });
 
-      t.test('tenant member and public user lose access', (t) => {
+      t.test('organization member and public user lose access', (t) => {
         t.assert(organizationMember).not.has('retrieve').on(subDocument);
         t.assert(publicUser).not.has('retrieve').on(subDocument);
         t.end();
@@ -964,7 +964,7 @@ t.test('Document', (t) => {
           .setOrganizationAccess(organization, 'no_access')
           .setPublicAccess('no_access')
           .addDirectMember(topLevelFolderMember, 'no_access')
-          .addGroup(topLevelGalleryGroup, 'no_access'),
+          .addGroup(topLeveldocumentGroup, 'no_access'),
       );
       const mainDocument = t.relationship(
         new Document().writeOrganization(organization).writeFolder(folderFixture),
@@ -979,7 +979,7 @@ t.test('Document', (t) => {
         t.assert(organizationMember).not.has('retrieve').on(subDocument);
         t.assert(publicUser).not.has('retrieve').on(subDocument);
         t.assert(topLevelFolderMember).not.has('retrieve').on(subDocument);
-        t.assert(topLevelGalleryGroupMember).not.has('retrieve').on(subDocument);
+        t.assert(topLeveldocumentGroupMember).not.has('retrieve').on(subDocument);
         t.end();
       });
 
@@ -988,7 +988,7 @@ t.test('Document', (t) => {
     t.end();
   });
 
-  t.test('Tenant access must be downgraded to view_only', (t) => {
+  t.test('organization access must be downgraded to view_only', (t) => {
     const document = t.relationship(
       new Document()
         .writeOrganization(organization)
