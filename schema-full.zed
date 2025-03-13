@@ -1,0 +1,627 @@
+caveat password_protected(password string, current_password string) {
+  password == current_password
+}
+
+definition user {}
+
+definition guest {}
+
+definition anonymous {}
+
+definition tenant {
+  relation public: user:* | guest:* | anonymous:*
+  relation authenticated: user:* | guest:*
+
+  relation member: user
+  relation admin: user
+  relation owner: user
+
+  permission membership = member + admin + owner
+  
+  permission administratorship = admin + owner
+
+  permission retrieve = member + admin + owner
+  permission update = member + admin + owner
+  permission update_all_tenant_fields = admin + owner
+  permission overview = member + admin + owner
+
+  permission list_profile_folders = public
+  permission list_folders = member + admin + owner
+  permission create_folder = member + admin + owner
+
+  permission list_profile_galleries = public
+  permission list_galleries = member + admin + owner
+  permission create_gallery = member + admin + owner
+  
+  permission list_assets = member + admin + owner
+
+  permission list_asset_versions = member + admin + owner
+
+  permission delete_non_default_asset_versions = admin + owner
+
+  permission list_tags = authenticated
+  permission create_tag = member + admin + owner
+  permission retrieve_tag = authenticated
+
+  permission list_watermarks = member + admin + owner
+  permission create_watermark = member + admin + owner
+  
+  permission list_groups = member + admin + owner
+  permission create_group = admin + owner
+
+  permission list_referrals = admin + owner
+
+  permission create_image_generation = member + admin + owner
+  
+  permission list_cards = admin + owner
+  permission create_card = admin + owner
+  permission delete_card = admin + owner
+  permission retrieve_customer = member + admin + owner
+  permission update_customer = admin + owner
+  permission list_invoices = admin + owner
+  permission retrieve_subscription = member + admin + owner
+  permission create_subscription = admin + owner
+  permission update_subscription = admin + owner
+  permission delete_subscription = admin + owner
+
+  permission list_credit_usage = member + admin + owner
+  permission overview_credit_usage = member + admin + owner
+  
+  permission list_visitors = member + admin + owner
+  permission delete_visitors = admin + owner
+
+  permission list_domains = member + admin + owner
+  permission create_domain = admin + owner
+
+  permission list_members = member + admin + owner
+  permission retrieve_member = member + admin + owner
+
+  permission list_tenant_colors = member + admin + owner
+  permission create_tenant_color = admin + owner
+
+  permission list_gallery_presets = member + admin + owner
+  permission create_gallery_preset = admin + owner
+
+  permission upload_tenant_asset = admin + owner
+
+  permission list_gallery_members = member + admin + owner
+  permission list_gallery_invitations = member + admin + owner
+  
+  permission list_folder_members = member + admin + owner
+  permission list_folder_invitations = member + admin + owner
+
+  permission list_activities = member + admin + owner
+  permission mark_seen_activity = member + admin + owner
+
+  permission list_gallery_themes = member + admin + owner
+  permission create_gallery_theme = member + admin + owner
+  permission retrieve_gallery_theme = member + admin + owner
+  permission update_gallery_theme = member + admin + owner
+  permission delete_gallery_theme = member + admin + owner
+}
+
+definition group {
+  relation tenant: tenant
+  relation user: user
+
+  permission membership = user
+
+  permission retrieve = tenant->membership
+  permission update = tenant->administratorship
+  permission delete = tenant->administratorship
+
+  permission list_users = tenant->membership
+  permission add_user = tenant->administratorship
+  permission remove_user = tenant->administratorship
+
+  permission list_folders = tenant->membership
+  permission add_folder = tenant->membership
+  permission update_folder_access = tenant->membership
+  permission remove_folder = tenant->membership
+
+  permission list_galleries = tenant->membership
+  permission add_gallery = tenant->membership
+  permission update_gallery_access = tenant->membership
+  permission remove_gallery = tenant->membership
+}
+
+definition folder {
+  relation tenant: tenant
+  relation parent: folder
+  
+  relation authenticated: user:* | guest:*
+
+  relation owner: user
+
+  relation folder_viewer: user
+  relation folder_reviewer: user
+  relation folder_editor: user
+  relation direct_member_inheritance_disabled: user
+
+  relation group_viewer: group#membership
+  relation group_reviewer: group#membership
+  relation group_editor: group#membership
+  relation group_inheritance_disabled: group#membership
+
+  relation tenant_viewer: tenant#member
+  relation tenant_reviewer: tenant#member
+  relation tenant_editor: tenant#member
+  relation tenant_inheritance_disabled: tenant#member
+
+  relation public_viewer: user:* | guest:* | anonymous:*
+  relation public_reviewer: user:* | guest:* | anonymous:*
+  relation public_inheritance_disabled: user:* | guest:* | anonymous:*
+
+
+  permission tenant_administratorship = tenant->administratorship + parent->tenant_administratorship
+  permission tenant_membership = tenant->membership + parent->tenant_membership
+  permission ownership = parent->ownership + owner
+
+  permission direct_member = folder_viewer + folder_reviewer + folder_editor + parent->direct_member
+  permission group_member = group_viewer + group_reviewer + group_editor + parent->group_member
+  permission tenant_member = tenant_viewer + tenant_reviewer + tenant_editor + parent->tenant_member
+  permission public_member = public_viewer + public_reviewer + parent->public_member
+
+  permission inherit_direct_viewer = (parent->viewer & direct_member - direct_member_inheritance_disabled)
+  permission inherit_group_viewer = (parent->viewer & group_member - group_inheritance_disabled)
+  permission inherit_tenant_viewer = (parent->viewer & tenant_member - tenant_inheritance_disabled)
+  permission inherit_public_viewer = (parent->viewer & public_member - public_inheritance_disabled)
+
+  permission inherit_direct_reviewer = (parent->reviewer & direct_member - direct_member_inheritance_disabled)
+  permission inherit_group_reviewer = (parent->reviewer & group_member - group_inheritance_disabled)
+  permission inherit_tenant_reviewer = (parent->reviewer & tenant_member - tenant_inheritance_disabled)
+  permission inherit_public_reviewer = (parent->reviewer & public_member - public_inheritance_disabled)
+
+  permission inherit_direct_editor = (parent->editor & direct_member - direct_member_inheritance_disabled)
+  permission inherit_group_editor = (parent->editor & group_member - group_inheritance_disabled)
+  permission inherit_tenant_editor = (parent->editor & tenant_member - tenant_inheritance_disabled)
+
+  permission direct_viewer = folder_viewer + group_viewer + tenant_viewer + inherit_direct_viewer + inherit_group_viewer + inherit_tenant_viewer + inherit_public_viewer
+  permission direct_reviewer = folder_reviewer + group_reviewer + tenant_reviewer + inherit_direct_reviewer + inherit_group_reviewer + inherit_tenant_reviewer + inherit_public_reviewer
+
+  permission viewer = public_viewer + direct_viewer + inherit_public_viewer
+  permission reviewer = public_reviewer + direct_reviewer + inherit_public_reviewer
+  permission editor = folder_editor + group_editor + tenant_editor + inherit_direct_editor + inherit_group_editor + inherit_tenant_editor
+
+  permission retrieve = ownership + viewer + reviewer + editor + tenant_administratorship
+  permission access_tenant_dashboard_listing = direct_viewer + direct_reviewer + editor + ownership + tenant_administratorship
+  permission update = ownership + editor + tenant_administratorship
+  permission delete = ownership + editor + tenant_administratorship
+
+  permission list_folders = ownership + viewer + reviewer + editor + tenant_administratorship
+  // spicedb-ignore-warning: relation-name-references-parent
+  permission create_folder = ownership + editor + tenant_administratorship
+
+  permission create_folder_favourite = ownership + tenant_membership
+  permission delete_folder_favourite = ownership + tenant_membership
+
+  permission list_folder_invitations = ownership + editor + tenant_administratorship
+  permission create_folder_invitation = ownership + editor + tenant_administratorship
+  permission retrieve_folder_invitation = ownership + editor + tenant_administratorship
+  permission delete_folder_invitation = ownership + editor + tenant_administratorship
+
+  permission list_folder_members = ownership + viewer + reviewer + editor + tenant_administratorship
+  permission retrieve_folder_member = ownership + viewer + reviewer + editor + tenant_administratorship
+  permission update_folder_member = ownership + editor + tenant_administratorship
+  permission delete_folder_member = ownership + editor + tenant_administratorship
+
+  permission list_galleries = ownership + viewer + reviewer + editor + tenant_administratorship
+  permission create_gallery = ownership + editor + tenant_administratorship
+
+  permission list_assets = ownership + viewer + reviewer + editor + tenant_administratorship
+  permission create_asset = ownership + editor + tenant_administratorship
+
+  permission list_groups = ownership + editor + tenant_administratorship
+  permission add_group = ownership + editor + tenant_administratorship
+  permission remove_group = ownership + editor + tenant_administratorship
+  
+  permission list_visitors = ownership + viewer + reviewer + editor + tenant_administratorship
+  permission create_visitor = ownership + (viewer & authenticated) + reviewer + editor
+}
+
+definition gallery {
+  relation tenant: tenant
+  relation folder: folder
+  relation section: section
+
+  relation authenticated: user:* | guest:* 
+
+  relation owner: user
+
+  relation gallery_viewer: user
+  relation gallery_reviewer: user
+  relation gallery_editor: user
+  relation direct_member_inheritance_disabled: user
+
+  relation group_viewer: group#membership
+  relation group_reviewer: group#membership
+  relation group_editor: group#membership
+  relation group_inheritance_disabled: group#membership
+
+  relation tenant_viewer: tenant#member
+  relation tenant_reviewer: tenant#member
+  relation tenant_editor: tenant#member
+  relation tenant_inheritance_disabled: tenant#member
+
+  relation public_viewer: user:* | user:* with password_protected | guest:* | guest:* with password_protected | anonymous:* | anonymous:* with password_protected
+  relation public_reviewer: user:* | user:* with password_protected | guest:* | guest:* with password_protected
+  relation public_inheritance_disabled: user:* | guest:* | anonymous:*
+
+  relation gallery_download_enabled: user:* | guest:* | anonymous:*
+  relation asset_download_enabled: user:* | guest:* | anonymous:*
+
+  permission tenant_administratorship = tenant->administratorship + folder->tenant_administratorship + section->tenant_administratorship
+  permission tenant_membership = tenant->membership + folder->tenant_membership + section->tenant_membership
+  permission ownership = folder->ownership + section->ownership + owner
+
+  permission direct_member = gallery_viewer + gallery_reviewer + gallery_editor + folder->direct_member + section->direct_member
+  permission group_member = group_viewer + group_reviewer + group_editor + folder->group_member + section->group_member
+  permission tenant_member = tenant_viewer + tenant_reviewer + tenant_editor + folder->tenant_member + section->tenant_member
+  permission public_member = public_viewer + public_reviewer + folder->public_member + section->public_member
+
+  permission inherit_direct_viewer = (folder->viewer + section->viewer) & direct_member - direct_member_inheritance_disabled
+  permission inherit_group_viewer = (folder->viewer + section->viewer) & group_member - group_inheritance_disabled
+  permission inherit_tenant_viewer = (folder->viewer + section->viewer) & tenant_member - tenant_inheritance_disabled
+  permission inherit_public_viewer = (folder->viewer + section->viewer) & public_member - public_inheritance_disabled
+
+  permission inherit_direct_reviewer = (folder->reviewer + section->reviewer) & direct_member - direct_member_inheritance_disabled
+  permission inherit_group_reviewer = (folder->reviewer + section->reviewer) & group_member - group_inheritance_disabled
+  permission inherit_tenant_reviewer = (folder->reviewer + section->reviewer) & tenant_member - tenant_inheritance_disabled
+  permission inherit_public_reviewer = (folder->reviewer + section->reviewer) & public_member - public_inheritance_disabled
+
+  permission inherit_direct_editor = (folder->editor + section->editor) & direct_member - direct_member_inheritance_disabled
+  permission inherit_group_editor = (folder->editor + section->editor) & group_member - group_inheritance_disabled
+  permission inherit_tenant_editor = (folder->editor + section->editor) & tenant_member - tenant_inheritance_disabled
+
+  permission direct_viewer = gallery_viewer + group_viewer + tenant_viewer + inherit_direct_viewer + inherit_group_viewer + inherit_tenant_viewer + inherit_public_viewer
+  permission direct_reviewer = gallery_reviewer + group_reviewer + tenant_reviewer + inherit_direct_reviewer + inherit_group_reviewer + inherit_tenant_reviewer + inherit_public_reviewer
+
+  permission viewer = public_viewer + direct_viewer + inherit_public_viewer
+  permission reviewer = public_reviewer + direct_reviewer + inherit_public_reviewer
+  permission editor = gallery_editor + group_editor + tenant_editor + inherit_direct_editor + inherit_group_editor + inherit_tenant_editor
+
+  permission retrieve = ownership + viewer + reviewer + editor + tenant_administratorship
+  permission access_tenant_dashboard_listing = direct_viewer + direct_reviewer + editor + ownership + tenant_administratorship
+  permission update = ownership + editor + tenant_administratorship
+  permission delete = ownership + editor + tenant_administratorship
+  permission transfer_gallery_ownership = ownership
+  permission overview = ownership + viewer + reviewer + editor + tenant_administratorship
+  permission update_gallery_status = ownership + reviewer + editor + tenant_administratorship
+
+  permission list_galleries = ownership + viewer + reviewer + editor + tenant_administratorship
+  // spicedb-ignore-warning: relation-name-references-parent
+  permission create_gallery = ownership + editor + tenant_administratorship
+
+  permission list_sections = ownership + viewer + reviewer + editor + tenant_administratorship
+  permission create_section = ownership + editor + tenant_administratorship
+  permission retrieve_section = ownership + viewer + reviewer + editor + tenant_administratorship
+  permission update_section = ownership + editor + tenant_administratorship
+  permission delete_section = ownership + editor + tenant_administratorship
+
+  permission list_assets = ownership + viewer + reviewer + editor + tenant_administratorship
+  permission create_asset = ownership + editor + tenant_administratorship
+  permission retrieve_asset = ownership + viewer + reviewer + editor + tenant_administratorship
+  permission update_asset = ownership + editor + tenant_administratorship
+  permission delete_asset = ownership + editor + tenant_administratorship
+
+  permission update_review_asset_fields = ownership + reviewer + editor + tenant_administratorship
+  permission access_non_watermarked_asset_version = ownership + editor + tenant_administratorship
+
+  permission list_groups = ownership + editor + tenant_administratorship
+  permission add_group = ownership + editor + tenant_administratorship
+  permission remove_group = ownership + editor + tenant_administratorship
+
+  permission create_archive = ownership + editor + ((viewer + reviewer) & gallery_download_enabled) + tenant_administratorship
+  permission retrieve_archive = ownership + editor + ((viewer + reviewer) & gallery_download_enabled) + tenant_administratorship
+  
+  permission download_single_asset = ownership + editor + ((viewer + reviewer) & asset_download_enabled) + tenant_administratorship
+
+  permission list_visitors = ownership + viewer + reviewer + editor + tenant_administratorship
+  permission create_visitor = ownership + reviewer + editor + (viewer & authenticated)
+
+  permission list_watchers = ownership + reviewer + editor + (viewer & authenticated) + tenant_administratorship
+  permission retrieve_watcher = ownership + reviewer + editor + (viewer & authenticated) + tenant_administratorship
+  permission create_watcher = ownership + reviewer + editor + (viewer & authenticated) + tenant_administratorship
+  permission delete_watcher = ownership + editor + tenant_administratorship
+
+  permission list_comments = ownership + viewer + reviewer + editor + tenant_administratorship
+  permission create_comment = ownership + reviewer + editor + tenant_administratorship
+  permission retrieve_comment = ownership + viewer + reviewer + editor + tenant_administratorship
+  permission retrieve_private_comment = ownership + editor + tenant_administratorship
+  permission update_comment = ownership + reviewer + editor + tenant_administratorship
+  permission update_comment_text = ownership + editor + tenant_administratorship
+  permission update_comment_position = ownership + editor + tenant_administratorship
+  permission update_comment_private = ownership + editor + tenant_administratorship
+  permission update_comment_annotation = ownership + editor + tenant_administratorship
+  permission delete_comment = ownership + editor + tenant_administratorship
+  
+  permission list_gallery_invitations = ownership + editor + tenant_administratorship
+  permission create_gallery_invitation = ownership + editor + tenant_administratorship
+  permission retrieve_gallery_invitation = ownership + editor + tenant_administratorship
+  permission delete_gallery_invitation = ownership + editor + tenant_administratorship
+
+  permission send_email = ownership + editor + tenant_administratorship
+  
+  permission create_gallery_favourite = ownership + viewer + reviewer + editor + tenant_administratorship
+  permission delete_gallery_favourite = ownership + viewer + reviewer + editor + tenant_administratorship
+
+  permission create_gallery_view = ownership + viewer + reviewer + editor
+
+  permission list_gallery_members = ownership + viewer + reviewer + editor + tenant_administratorship
+  permission retrieve_gallery_member = ownership + viewer + reviewer + editor + tenant_administratorship
+  permission update_gallery_member = ownership + editor + tenant_administratorship
+  permission delete_gallery_member = ownership + editor + tenant_administratorship
+
+  permission add_tag = ownership + editor + tenant_administratorship
+  permission remove_tag = ownership + editor + tenant_administratorship
+
+  permission list_activities = ownership + viewer + reviewer + editor + tenant_administratorship
+  permission mark_seen_activity = ownership + viewer + reviewer + editor + tenant_administratorship
+  
+  permission create_like = ownership + reviewer + editor + tenant_administratorship
+  permission delete_like = ownership + reviewer + editor + tenant_administratorship
+
+  permission delete_non_default_asset_versions = ownership + editor + tenant_administratorship
+}
+
+definition section {
+  relation gallery: gallery
+
+  permission tenant_administratorship = gallery->tenant_administratorship
+  permission tenant_membership = gallery->tenant_membership
+  permission ownership = gallery->ownership
+
+  permission viewer = gallery->viewer
+  permission reviewer = gallery->reviewer
+  permission editor = gallery->editor
+
+  permission direct_member = gallery->direct_member
+  permission group_member = gallery->group_member
+  permission tenant_member = gallery->tenant_member
+  permission public_member = gallery->public_member
+
+  permission list_sections = gallery->list_sections
+  // spicedb-ignore-warning: relation-name-references-parent
+  permission create_section = gallery->create_section
+  permission retrieve = gallery->retrieve_section
+  permission update = gallery->update_section
+  permission delete = gallery->delete_section
+
+  permission list_galleries = gallery->list_galleries
+  permission create_gallery = gallery->create_gallery
+  permission retrieve_gallery = gallery->retrieve
+  permission update_gallery = gallery->update
+  permission delete_gallery = gallery->delete
+  
+  permission overview = gallery->overview
+  permission update_gallery_status = gallery->update_gallery_status
+
+  permission list_assets = gallery->list_assets
+  permission create_asset = gallery->create_asset
+  permission retrieve_asset = gallery->retrieve_asset
+  permission update_asset = gallery->update_asset
+  permission delete_asset = gallery->delete_asset
+
+  permission update_review_asset_fields = gallery->update_review_asset_fields
+  permission access_non_watermarked_asset_version = gallery->access_non_watermarked_asset_version
+
+  permission list_groups = gallery->list_groups
+  permission add_group = gallery->add_group
+  permission remove_group = gallery->remove_group
+
+  permission create_archive = gallery->create_archive
+  permission retrieve_archive = gallery->retrieve_archive
+  
+  permission list_visitors = gallery->list_visitors
+  permission create_visitor = gallery->create_visitor
+
+  permission list_watchers = gallery->list_watchers
+  permission retrieve_watcher = gallery->retrieve_watcher
+  permission create_watcher = gallery->create_watcher
+  permission delete_watcher = gallery->delete_watcher
+
+  permission list_comments = gallery->list_comments
+  permission create_comment = gallery->create_comment
+  permission retrieve_comment = gallery->retrieve_comment
+  permission retrieve_private_comment = gallery->retrieve_private_comment
+  permission update_comment = gallery->update_comment
+  permission update_comment_text = gallery->update_comment_text
+  permission update_comment_position = gallery->update_comment_position
+  permission update_comment_private = gallery->update_comment_private
+  permission update_comment_annotation = gallery->update_comment_annotation
+  permission delete_comment = gallery->delete_comment
+  
+  permission list_gallery_invitations = gallery->list_gallery_invitations
+  permission create_gallery_invitation = gallery->create_gallery_invitation
+  permission retrieve_gallery_invitation = gallery->retrieve_gallery_invitation
+  permission delete_gallery_invitation = gallery->delete_gallery_invitation
+ 
+  permission send_gallery_email = gallery->send_email
+  
+  permission create_gallery_favourite = gallery->create_gallery_favourite
+  permission delete_gallery_favourite = gallery->delete_gallery_favourite
+
+  permission create_gallery_view = gallery->create_gallery_view
+
+  permission list_gallery_members = gallery->list_gallery_members
+  permission retrieve_gallery_member = gallery->retrieve_gallery_member
+  permission update_gallery_member = gallery->update_gallery_member
+  permission delete_gallery_member = gallery->delete_gallery_member
+
+  permission download_single_asset = gallery->download_single_asset
+  
+  permission add_tag = gallery->add_tag
+  permission remove_tag = gallery->remove_tag
+
+  permission list_activities = gallery->list_activities
+  permission mark_seen_activity = gallery->mark_seen_activity
+  
+  permission create_like = gallery->create_like
+  permission delete_like = gallery->delete_like
+
+  permission delete_non_default_asset_versions = gallery->delete_non_default_asset_versions
+}
+
+definition asset {
+  relation gallery: gallery
+
+  permission retrieve = gallery->retrieve_asset
+  permission update = gallery->update_asset
+  permission delete = gallery->delete_asset
+
+  permission list_asset_versions = gallery->list_assets
+  permission create_asset_version = gallery->create_asset
+
+  permission update_review_asset_fields = gallery->update_review_asset_fields
+  permission access_non_watermarked_asset_version = gallery->access_non_watermarked_asset_version
+
+  permission list_watchers = gallery->list_watchers
+  permission retrieve_watcher = gallery->retrieve_watcher
+  permission create_watcher = gallery->create_watcher
+  permission delete_watcher = gallery->delete_watcher
+
+  permission list_comments = gallery->list_comments
+  permission create_comment = gallery->create_comment
+  permission retrieve_comment = gallery->retrieve_comment
+  permission retrieve_private_comment = gallery->retrieve_private_comment
+  permission update_comment = gallery->update_comment
+  permission update_comment_text = gallery->update_comment_text
+  permission update_comment_position = gallery->update_comment_position
+  permission update_comment_private = gallery->update_comment_private
+  permission update_comment_annotation = gallery->update_comment_annotation
+  permission delete_comment = gallery->delete_comment
+
+  // spicedb-ignore-warning: relation-name-references-parent
+  permission download_single_asset = gallery->download_single_asset
+
+  permission add_tag = gallery->add_tag
+  permission remove_tag = gallery->remove_tag
+
+  permission list_activities = gallery->list_activities
+  permission mark_seen_activity = gallery->mark_seen_activity
+  
+  permission create_like = gallery->create_like
+  permission delete_like = gallery->delete_like
+}
+
+definition asset_version {
+  relation asset: asset
+
+  relation owner: user
+
+  permission retrieve = owner + asset->retrieve
+  permission update = owner + asset->update
+  permission delete = owner + asset->delete
+  permission access_non_watermarked = owner + asset->access_non_watermarked_asset_version
+}
+
+definition tag {
+  relation tenant: tenant
+
+  permission retrieve = tenant->retrieve_tag
+  permission update = tenant->membership
+  permission delete = tenant->membership
+
+  permission add = tenant->membership
+  permission remove = tenant->membership
+}
+
+definition watermark {
+  relation tenant: tenant
+
+  permission retrieve = tenant->membership
+  permission update = tenant->membership
+  permission delete = tenant->membership
+}
+
+definition referral {
+  relation tenant: tenant
+
+  permission delete = tenant->administratorship
+}
+
+definition visitor {
+  relation tenant: tenant
+
+  permission delete = tenant->administratorship
+}
+
+definition domain {
+  relation tenant: tenant
+
+  permission retrieve = tenant->membership
+  permission delete = tenant->administratorship
+  permission check = tenant->administratorship
+}
+
+definition tenant_color {
+  relation tenant: tenant
+
+  permission retrieve = tenant->membership
+  permission update = tenant->administratorship
+  permission delete = tenant->administratorship
+}
+
+definition watcher {
+  relation owner: user | guest
+  relation target: gallery | asset
+
+  permission delete = owner + target->delete_watcher
+}
+
+definition comment {
+  relation owner: user | guest
+  relation asset: asset
+  relation public: asset#retrieve_comment
+
+  permission retrieve = owner + public + asset->retrieve_private_comment
+  permission update = owner + asset->update_comment
+  permission delete = owner + asset->delete_comment
+
+  permission update_text = owner + asset->update_comment_text
+  permission update_position = owner + asset->update_comment_position
+  permission update_private = owner + asset->update_comment_private
+  permission update_annotation = owner + asset->update_comment_annotation
+}
+
+definition gallery_invitation {
+  relation gallery: gallery
+  relation owner: user
+
+  permission retrieve = owner + gallery->retrieve_gallery_invitation
+  permission delete = owner + gallery->delete_gallery_invitation
+}
+
+definition gallery_member {
+  relation gallery: gallery
+  relation user: user
+
+  permission retrieve = user + gallery->retrieve_gallery_member
+  permission update = gallery->update_gallery_member
+  permission delete = user + gallery->delete_gallery_member
+}
+
+definition gallery_preset {
+  relation tenant: tenant
+
+  permission retrieve = tenant->membership
+  permission update = tenant->administratorship
+  permission delete = tenant->administratorship
+}
+
+definition folder_invitation {
+  relation folder: folder
+  relation owner: user
+
+  permission retrieve = owner + folder->retrieve_folder_invitation
+  permission delete = owner + folder->delete_folder_invitation
+}
+
+definition folder_member {
+  relation folder: folder
+  relation user: user
+
+  permission retrieve = user + folder->retrieve_folder_member
+  permission update = folder->update_folder_member
+  permission delete = user + folder->delete_folder_member
+}

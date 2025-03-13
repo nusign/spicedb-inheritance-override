@@ -1,0 +1,19 @@
+{
+  "name": "spicedb",
+  "packageManager": "yarn@4.7.0",
+  "dependencies": {
+    "@faker-js/faker": "9.5.1",
+    "js-yaml": "4.1.0",
+    "ts-node": "10.9.2",
+    "typescript": "5.7.3"
+  },
+  "scripts": {
+    "build": "ts-node pkg/tap/cmd/build.ts",
+    "test:full": "ts-node pkg/tap/cmd/run.ts tests/full schema-full.zed",
+    "test:main": "ts-node pkg/tap/cmd/run.ts tests/main schema-main.zed"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "4",
+    "@types/node": "22.13.10"
+  }
+}

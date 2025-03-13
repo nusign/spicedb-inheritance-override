@@ -1,0 +1,1 @@
+export * from './spicedb.interfaces';
