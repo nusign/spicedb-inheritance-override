@@ -1,6 +1,6 @@
 import { t } from '../../../pkg/tap';
-import { Anonymous, Folder, Gallery, Guest, Tenant, User } from '../../_fixtures';
-import { Group } from '../../_fixtures/group.fixture';
+import { Anonymous, Folder, Gallery, Guest, Tenant, User } from '../_fixtures';
+import { Group } from '../_fixtures/group.fixture';
 
 t.test('Gallery', (t) => {
   const tenantOwner = t.relationship(new User());

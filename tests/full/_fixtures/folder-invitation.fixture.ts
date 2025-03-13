@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { SpicedbDefinition } from '../../pkg/tap';
+import { SpicedbDefinition } from '../../../pkg/tap';
 import { Folder } from './folder.fixture';
 import { User } from './user.fixture';
 

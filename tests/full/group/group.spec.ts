@@ -1,5 +1,5 @@
 import { t } from '../../../pkg/tap';
-import { Group, Tenant, User } from '../../_fixtures';
+import { Group, Tenant, User } from '../_fixtures';
 
 t.test('Group', (t) => {
   const tenantOwner = t.relationship(new User());

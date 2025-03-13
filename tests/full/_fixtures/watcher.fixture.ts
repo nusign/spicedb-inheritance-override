@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { SpicedbDefinition } from '../../pkg/tap';
+import { SpicedbDefinition } from '../../../pkg/tap';
 import { User } from './user.fixture';
 import { Gallery } from './gallery.fixture';
 import { Asset } from './asset.fixture';

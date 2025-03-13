@@ -1,8 +1,8 @@
 import { t } from '../../../pkg/tap';
-import { Anonymous } from '../../_fixtures/anonymous.fixture';
-import { Guest } from '../../_fixtures/guest.fixture';
-import { Tenant } from '../../_fixtures/tenant.fixture';
-import { User } from '../../_fixtures/user.fixture';
+import { Anonymous } from '../_fixtures/anonymous.fixture';
+import { Guest } from '../_fixtures/guest.fixture';
+import { Tenant } from '../_fixtures/tenant.fixture';
+import { User } from '../_fixtures/user.fixture';
 
 t.test('Tenant', (t) => {
   const userFixture = t.relationship(new User());

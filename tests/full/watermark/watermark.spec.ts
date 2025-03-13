@@ -1,5 +1,5 @@
 import { t } from '../../../pkg/tap';
-import { Anonymous, Guest, Tenant, User, Watermark } from '../../_fixtures';
+import { Anonymous, Guest, Tenant, User, Watermark } from '../_fixtures';
 
 t.test('Watermark', (t) => {
   const tenantOwner = t.relationship(new User());

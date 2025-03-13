@@ -7,7 +7,7 @@ import {
   Guest,
   Anonymous,
   Gallery,
-} from '../../_fixtures';
+} from '../_fixtures';
 
 t.test('Visitor', (t) => {
   const tenantOwner = t.relationship(new User());

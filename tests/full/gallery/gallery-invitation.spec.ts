@@ -6,7 +6,7 @@ import {
   Guest,
   Tenant,
   User,
-} from '../../_fixtures';
+} from '../_fixtures';
 
 t.test('GalleryInvitation', (t) => {
   t.test('owner should have all permissions', (t) => {

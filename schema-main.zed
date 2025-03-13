@@ -8,10 +8,7 @@ definition guest {}
 
 definition anonymous {}
 
-definition tenant {
-  relation public: user:* | guest:* | anonymous:*
-  relation authenticated: user:* | guest:*
-
+definition organization {
   relation member: user
   relation admin: user
   relation owner: user
@@ -22,23 +19,19 @@ definition tenant {
 }
 
 definition group {
-  relation tenant: tenant
+  relation organization: organization
   relation user: user
 
   permission membership = user
 }
 
 definition folder {
-  relation tenant: tenant
+  relation organization: organization
   relation parent: folder
   
-  relation authenticated: user:* | guest:*
-
-  relation owner: user
-
-  relation folder_viewer: user
-  relation folder_reviewer: user
-  relation folder_editor: user
+  relation direct_viewer: user
+  relation direct_reviewer: user
+  relation direct_editor: user
   relation direct_member_inheritance_disabled: user
 
   relation group_viewer: group#membership
@@ -46,73 +39,65 @@ definition folder {
   relation group_editor: group#membership
   relation group_inheritance_disabled: group#membership
 
-  relation tenant_viewer: tenant#member
-  relation tenant_reviewer: tenant#member
-  relation tenant_editor: tenant#member
-  relation tenant_inheritance_disabled: tenant#member
+  relation organization_viewer: organization#member
+  relation organization_reviewer: organization#member
+  relation organization_editor: organization#member
+  relation organization_inheritance_disabled: organization#member
 
   relation public_viewer: user:* | guest:* | anonymous:*
   relation public_reviewer: user:* | guest:* | anonymous:*
   relation public_inheritance_disabled: user:* | guest:* | anonymous:*
 
 
-  permission tenant_administratorship = tenant->administratorship + parent->tenant_administratorship
-  permission tenant_membership = tenant->membership + parent->tenant_membership
-  permission ownership = parent->ownership + owner
+  permission organization_administratorship = organization->administratorship + parent->organization_administratorship
+  permission organization_membership = organization->membership + parent->organization_membership
 
-  permission direct_member = folder_viewer + folder_reviewer + folder_editor + parent->direct_member
+  permission direct_member = direct_viewer + direct_reviewer + direct_editor + parent->direct_member
   permission group_member = group_viewer + group_reviewer + group_editor + parent->group_member
-  permission tenant_member = tenant_viewer + tenant_reviewer + tenant_editor + parent->tenant_member
+  permission organization_member = organization_viewer + organization_reviewer + organization_editor + parent->organization_member
   permission public_member = public_viewer + public_reviewer + parent->public_member
 
   permission inherit_direct_viewer = (parent->viewer & direct_member - direct_member_inheritance_disabled)
   permission inherit_group_viewer = (parent->viewer & group_member - group_inheritance_disabled)
-  permission inherit_tenant_viewer = (parent->viewer & tenant_member - tenant_inheritance_disabled)
+  permission inherit_organization_viewer = (parent->viewer & organization_member - organization_inheritance_disabled)
   permission inherit_public_viewer = (parent->viewer & public_member - public_inheritance_disabled)
 
   permission inherit_direct_reviewer = (parent->reviewer & direct_member - direct_member_inheritance_disabled)
   permission inherit_group_reviewer = (parent->reviewer & group_member - group_inheritance_disabled)
-  permission inherit_tenant_reviewer = (parent->reviewer & tenant_member - tenant_inheritance_disabled)
+  permission inherit_organization_reviewer = (parent->reviewer & organization_member - organization_inheritance_disabled)
   permission inherit_public_reviewer = (parent->reviewer & public_member - public_inheritance_disabled)
 
   permission inherit_direct_editor = (parent->editor & direct_member - direct_member_inheritance_disabled)
   permission inherit_group_editor = (parent->editor & group_member - group_inheritance_disabled)
-  permission inherit_tenant_editor = (parent->editor & tenant_member - tenant_inheritance_disabled)
+  permission inherit_organization_editor = (parent->editor & organization_member - organization_inheritance_disabled)
 
-  permission direct_viewer = folder_viewer + group_viewer + tenant_viewer + inherit_direct_viewer + inherit_group_viewer + inherit_tenant_viewer + inherit_public_viewer
-  permission direct_reviewer = folder_reviewer + group_reviewer + tenant_reviewer + inherit_direct_reviewer + inherit_group_reviewer + inherit_tenant_reviewer + inherit_public_reviewer
+  permission direct_all_viewer = direct_viewer + group_viewer + organization_viewer + inherit_direct_viewer + inherit_group_viewer + inherit_organization_viewer + inherit_public_viewer
+  permission direct_all_reviewer = direct_reviewer + group_reviewer + organization_reviewer + inherit_direct_reviewer + inherit_group_reviewer + inherit_organization_reviewer + inherit_public_reviewer
 
-  permission viewer = public_viewer + direct_viewer + inherit_public_viewer
-  permission reviewer = public_reviewer + direct_reviewer + inherit_public_reviewer
-  permission editor = folder_editor + group_editor + tenant_editor + inherit_direct_editor + inherit_group_editor + inherit_tenant_editor
+  permission viewer = public_viewer + direct_all_viewer + inherit_public_viewer
+  permission reviewer = public_reviewer + direct_all_reviewer + inherit_public_reviewer
+  permission editor = direct_editor + group_editor + organization_editor + inherit_direct_editor + inherit_group_editor + inherit_organization_editor
 
-  permission retrieve = ownership + viewer + reviewer + editor + tenant_administratorship
-  permission update = ownership + editor + tenant_administratorship
-  permission delete = ownership + editor + tenant_administratorship
+  permission retrieve = viewer + reviewer + editor + organization_administratorship
+  permission update = editor + organization_administratorship
+  permission delete = editor + organization_administratorship
 
-  permission list_folders = ownership + viewer + reviewer + editor + tenant_administratorship
+  permission list_folders = viewer + reviewer + editor + organization_administratorship
   // spicedb-ignore-warning: relation-name-references-parent
-  permission create_folder = ownership + editor + tenant_administratorship
+  permission create_folder = editor + organization_administratorship
 
-  permission list_galleries = ownership + viewer + reviewer + editor + tenant_administratorship
-  permission create_gallery = ownership + editor + tenant_administratorship
-
-  permission list_assets = ownership + viewer + reviewer + editor + tenant_administratorship
-  permission create_asset = ownership + editor + tenant_administratorship
+  permission list_documents = viewer + reviewer + editor + organization_administratorship
+  permission create_document = editor + organization_administratorship
 }
 
-definition gallery {
-  relation tenant: tenant
+definition document {
+  relation organization: organization
   relation folder: folder
-  relation section: section
+  relation parent: document
 
-  relation authenticated: user:* | guest:* 
-
-  relation owner: user
-
-  relation gallery_viewer: user
-  relation gallery_reviewer: user
-  relation gallery_editor: user
+  relation direct_viewer: user
+  relation direct_reviewer: user
+  relation direct_editor: user
   relation direct_member_inheritance_disabled: user
 
   relation group_viewer: group#membership
@@ -120,67 +105,46 @@ definition gallery {
   relation group_editor: group#membership
   relation group_inheritance_disabled: group#membership
 
-  relation tenant_viewer: tenant#member
-  relation tenant_reviewer: tenant#member
-  relation tenant_editor: tenant#member
-  relation tenant_inheritance_disabled: tenant#member
+  relation organization_viewer: organization#member
+  relation organization_reviewer: organization#member
+  relation organization_editor: organization#member
+  relation organization_inheritance_disabled: organization#member
 
   relation public_viewer: user:* | user:* with password_protected | guest:* | guest:* with password_protected | anonymous:* | anonymous:* with password_protected
   relation public_reviewer: user:* | user:* with password_protected | guest:* | guest:* with password_protected
   relation public_inheritance_disabled: user:* | guest:* | anonymous:*
 
-  relation gallery_download_enabled: user:* | guest:* | anonymous:*
-  relation asset_download_enabled: user:* | guest:* | anonymous:*
+  permission organization_administratorship = organization->administratorship + folder->organization_administratorship + parent->organization_administratorship
+  permission organization_membership = organization->membership + folder->organization_membership + parent->organization_membership
 
-  permission tenant_administratorship = tenant->administratorship + folder->tenant_administratorship + section->tenant_administratorship
-  permission tenant_membership = tenant->membership + folder->tenant_membership + section->tenant_membership
-  permission ownership = folder->ownership + section->ownership + owner
+  permission direct_member = direct_viewer + direct_reviewer + direct_editor + folder->direct_member + parent->direct_member
+  permission group_member = group_viewer + group_reviewer + group_editor + folder->group_member + parent->group_member
+  permission organization_member = organization_viewer + organization_reviewer + organization_editor + folder->organization_member + parent->organization_member
+  permission public_member = public_viewer + public_reviewer + folder->public_member + parent->public_member
 
-  permission direct_member = gallery_viewer + gallery_reviewer + gallery_editor + folder->direct_member + section->direct_member
-  permission group_member = group_viewer + group_reviewer + group_editor + folder->group_member + section->group_member
-  permission tenant_member = tenant_viewer + tenant_reviewer + tenant_editor + folder->tenant_member + section->tenant_member
-  permission public_member = public_viewer + public_reviewer + folder->public_member + section->public_member
+  permission inherit_direct_viewer = (folder->viewer + parent->viewer) & direct_member - direct_member_inheritance_disabled
+  permission inherit_group_viewer = (folder->viewer + parent->viewer) & group_member - group_inheritance_disabled
+  permission inherit_organization_viewer = (folder->viewer + parent->viewer) & organization_member - organization_inheritance_disabled
+  permission inherit_public_viewer = (folder->viewer + parent->viewer) & public_member - public_inheritance_disabled
 
-  permission inherit_direct_viewer = (folder->viewer + section->viewer) & direct_member - direct_member_inheritance_disabled
-  permission inherit_group_viewer = (folder->viewer + section->viewer) & group_member - group_inheritance_disabled
-  permission inherit_tenant_viewer = (folder->viewer + section->viewer) & tenant_member - tenant_inheritance_disabled
-  permission inherit_public_viewer = (folder->viewer + section->viewer) & public_member - public_inheritance_disabled
+  permission inherit_direct_reviewer = (folder->reviewer + parent->reviewer) & direct_member - direct_member_inheritance_disabled
+  permission inherit_group_reviewer = (folder->reviewer + parent->reviewer) & group_member - group_inheritance_disabled
+  permission inherit_organization_reviewer = (folder->reviewer + parent->reviewer) & organization_member - organization_inheritance_disabled
+  permission inherit_public_reviewer = (folder->reviewer + parent->reviewer) & public_member - public_inheritance_disabled
 
-  permission inherit_direct_reviewer = (folder->reviewer + section->reviewer) & direct_member - direct_member_inheritance_disabled
-  permission inherit_group_reviewer = (folder->reviewer + section->reviewer) & group_member - group_inheritance_disabled
-  permission inherit_tenant_reviewer = (folder->reviewer + section->reviewer) & tenant_member - tenant_inheritance_disabled
-  permission inherit_public_reviewer = (folder->reviewer + section->reviewer) & public_member - public_inheritance_disabled
+  permission inherit_direct_editor = (folder->editor + parent->editor) & direct_member - direct_member_inheritance_disabled
+  permission inherit_group_editor = (folder->editor + parent->editor) & group_member - group_inheritance_disabled
+  permission inherit_organization_editor = (folder->editor + parent->editor) & organization_member - organization_inheritance_disabled
 
-  permission inherit_direct_editor = (folder->editor + section->editor) & direct_member - direct_member_inheritance_disabled
-  permission inherit_group_editor = (folder->editor + section->editor) & group_member - group_inheritance_disabled
-  permission inherit_tenant_editor = (folder->editor + section->editor) & tenant_member - tenant_inheritance_disabled
+  permission direct_all_viewer = direct_viewer + group_viewer + organization_viewer + inherit_direct_viewer + inherit_group_viewer + inherit_organization_viewer + inherit_public_viewer
+  permission direct_all_reviewer = direct_reviewer + group_reviewer + organization_reviewer + inherit_direct_reviewer + inherit_group_reviewer + inherit_organization_reviewer + inherit_public_reviewer
 
-  permission direct_viewer = gallery_viewer + group_viewer + tenant_viewer + inherit_direct_viewer + inherit_group_viewer + inherit_tenant_viewer + inherit_public_viewer
-  permission direct_reviewer = gallery_reviewer + group_reviewer + tenant_reviewer + inherit_direct_reviewer + inherit_group_reviewer + inherit_tenant_reviewer + inherit_public_reviewer
+  permission viewer = public_viewer + direct_all_viewer + inherit_public_viewer
+  permission reviewer = public_reviewer + direct_all_reviewer + inherit_public_reviewer
+  permission editor = direct_editor + group_editor + organization_editor + inherit_direct_editor + inherit_group_editor + inherit_organization_editor
 
-  permission viewer = public_viewer + direct_viewer + inherit_public_viewer
-  permission reviewer = public_reviewer + direct_reviewer + inherit_public_reviewer
-  permission editor = gallery_editor + group_editor + tenant_editor + inherit_direct_editor + inherit_group_editor + inherit_tenant_editor
+  permission retrieve = viewer + reviewer + editor + organization_administratorship
+  permission update = editor + organization_administratorship
 
-  permission retrieve = ownership + viewer + reviewer + editor + tenant_administratorship
-  permission update = ownership + editor + tenant_administratorship
-
-  permission create_comment = ownership + reviewer + editor + tenant_administratorship
-}
-
-definition section {
-  relation gallery: gallery
-
-  permission tenant_administratorship = gallery->tenant_administratorship
-  permission tenant_membership = gallery->tenant_membership
-  permission ownership = gallery->ownership
-
-  permission viewer = gallery->viewer
-  permission reviewer = gallery->reviewer
-  permission editor = gallery->editor
-
-  permission direct_member = gallery->direct_member
-  permission group_member = gallery->group_member
-  permission tenant_member = gallery->tenant_member
-  permission public_member = gallery->public_member
+  permission create_comment = reviewer + editor + organization_administratorship
 }

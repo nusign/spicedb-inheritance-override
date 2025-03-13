@@ -10,7 +10,7 @@ import {
   Guest,
   Tenant,
   User,
-} from '../../_fixtures';
+} from '../_fixtures';
 
 t.test('AssetVersion', (t) => {
   const tenantOwner = t.relationship(new User());

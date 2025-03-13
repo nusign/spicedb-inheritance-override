@@ -1,5 +1,5 @@
 import { t } from '../../../pkg/tap';
-import { Gallery, GalleryMember, Tenant, User } from '../../_fixtures';
+import { Gallery, GalleryMember, Tenant, User } from '../_fixtures';
 
 t.test('GalleryMember', (t) => {
   const tenantOwner = t.relationship(new User());

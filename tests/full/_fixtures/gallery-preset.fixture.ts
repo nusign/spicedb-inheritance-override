@@ -1,10 +1,9 @@
 import { randomUUID } from 'node:crypto';
-
-import { SpicedbDefinition } from '../../pkg/tap';
+import { SpicedbDefinition } from '../../../pkg/tap';
 import { Tenant } from './tenant.fixture';
 
-export class Watermark extends SpicedbDefinition {
-  public readonly type = 'watermark';
+export class GalleryPreset extends SpicedbDefinition {
+  public readonly type = 'gallery_preset';
   public readonly id = randomUUID();
 
   public writeTenant(tenant: Tenant) {

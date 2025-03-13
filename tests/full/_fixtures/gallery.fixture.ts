@@ -1,12 +1,12 @@
 import { randomUUID } from 'crypto';
-import { SpicedbDefinition } from '../../pkg/tap';
+import { SpicedbDefinition } from '../../../pkg/tap';
 import { AccessLevel, PublicAccessLevel, accessLevelToRelation } from './utils';
 import { Tenant } from './tenant.fixture';
 import { Folder } from './folder.fixture';
 import { Section } from './section.fixture';
 import { User } from './user.fixture';
 import { Group } from './group.fixture';
-import { TestBuilder } from '../../pkg/tap/test-builder';
+import { TestBuilder } from '../../../pkg/tap/test-builder';
 
 export class Gallery extends SpicedbDefinition {
   public readonly type = 'gallery';

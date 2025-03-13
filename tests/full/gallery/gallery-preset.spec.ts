@@ -1,5 +1,5 @@
 import { t } from '../../../pkg/tap';
-import { User, Tenant, GalleryPreset } from '../../_fixtures';
+import { User, Tenant, GalleryPreset } from '../_fixtures';
 
 t.test('GalleryPreset', (t) => {
   const tenantOwner = t.relationship(new User());

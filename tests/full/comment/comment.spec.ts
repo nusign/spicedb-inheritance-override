@@ -1,7 +1,7 @@
 import { t } from '../../../pkg/tap';
-import { Asset, Comment, Gallery } from '../../_fixtures';
-import { Tenant } from '../../_fixtures/tenant.fixture';
-import { User } from '../../_fixtures/user.fixture';
+import { Asset, Comment, Gallery } from '../_fixtures';
+import { Tenant } from '../_fixtures/tenant.fixture';
+import { User } from '../_fixtures/user.fixture';
 
 t.test('Comment', (t) => {
   const tenantMember = t.relationship(new User());

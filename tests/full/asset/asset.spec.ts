@@ -1,9 +1,9 @@
 import { t } from '../../../pkg/tap';
-import { Guest, Anonymous, Tenant } from '../../_fixtures';
-import { Asset } from '../../_fixtures/asset.fixture';
-import { Folder } from '../../_fixtures/folder.fixture';
-import { Gallery } from '../../_fixtures/gallery.fixture';
-import { User } from '../../_fixtures/user.fixture';
+import { Guest, Anonymous, Tenant } from '../_fixtures';
+import { Asset } from '../_fixtures/asset.fixture';
+import { Folder } from '../_fixtures/folder.fixture';
+import { Gallery } from '../_fixtures/gallery.fixture';
+import { User } from '../_fixtures/user.fixture';
 
 t.test('Asset', (t) => {
   const tenantOwner = t.relationship(new User());

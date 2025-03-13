@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
-import { SpicedbDefinition } from '../../pkg/tap';
-import { Tenant } from './tenant.fixture';
+import { SpicedbDefinition } from '../../../pkg/tap';
+import { Organization } from './organization.fixture';
 import { User } from './user.fixture';
 import { AccessLevel, PublicAccessLevel, accessLevelToRelation } from './utils';
 import { Group } from './group.fixture';
@@ -9,39 +9,19 @@ export class Folder extends SpicedbDefinition {
   public readonly type = 'folder';
   public readonly id = randomUUID();
 
-  public writeAuthenticated(): this {
-    this.write('authenticated', {
-      object: {
-        type: 'user',
-        id: '*',
-      },
-    });
-    this.write('authenticated', {
-      object: {
-        type: 'guest',
-        id: '*',
-      },
-    });
-    return this;
-  }
-
-  public writeTenant(tenant: Tenant): this {
-    return this.write('tenant', tenant.asSubjectRef());
+  public writeOrganization(organization: Organization): this {
+    return this.write('organization', organization.asSubjectRef());
   }
 
   public writeParent(parent: Folder): this {
     return this.write('parent', parent.asSubjectRef());
   }
 
-  public writeOwner(owner: User): this {
-    return this.write('owner', owner.asSubjectRef());
-  }
-
-  public addFolderMember(member: User, access: AccessLevel): this {
+  public addDirectMember(member: User, access: AccessLevel): this {
     const relation = accessLevelToRelation(access);
 
     if (relation) {
-      this.write(`folder_${relation}`, member.asSubjectRef());
+      this.write(`direct_${relation}`, member.asSubjectRef());
     }
 
     return this.write(
@@ -63,16 +43,16 @@ export class Folder extends SpicedbDefinition {
     );
   }
 
-  public setTenantAccess(tenant: Tenant, access: AccessLevel): this {
+  public setOrganizationAccess(organization: Organization, access: AccessLevel): this {
     const relation = accessLevelToRelation(access);
 
     if (relation) {
-      this.write(`tenant_${relation}`, tenant.asMemberSubjectRef());
+      this.write(`organization_${relation}`, organization.asMemberSubjectRef());
     }
 
     return this.write(
-      'tenant_inheritance_disabled',
-      tenant.asMemberSubjectRef(),
+      'organization_inheritance_disabled',
+      organization.asMemberSubjectRef(),
     );
   }
 

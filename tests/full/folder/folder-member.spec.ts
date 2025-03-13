@@ -1,5 +1,5 @@
 import { t } from '../../../pkg/tap';
-import { Folder, FolderMember, Tenant, User } from '../../_fixtures';
+import { Folder, FolderMember, Tenant, User } from '../_fixtures';
 
 t.test('FolderMember', (t) => {
   const tenantOwner = t.relationship(new User());

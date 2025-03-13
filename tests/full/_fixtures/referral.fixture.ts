@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { SpicedbDefinition } from '../../pkg/tap';
+import { SpicedbDefinition } from '../../../pkg/tap';
 import { Tenant } from './tenant.fixture';
 
 export class Referral extends SpicedbDefinition {

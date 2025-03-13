@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
-import { SpicedbDefinition } from '../../pkg/tap';
-import { SpicedbSubjectRef } from '../../pkg/tap/interfaces';
+import { SpicedbDefinition } from '../../../pkg/tap';
+import { SpicedbSubjectRef } from '../../../pkg/tap/interfaces';
 
 export class Tenant extends SpicedbDefinition {
   public readonly type = 'tenant';
