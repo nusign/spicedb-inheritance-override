@@ -15,7 +15,7 @@ export class Document extends SpicedbDefinition {
   }
 
   public writeFolder(folder: Folder): this {
-    return this.write("folder", folder.asSubjectRef());
+    return this.write("parent", folder.asSubjectRef());
   }
 
   public addParent(document: Document): this {

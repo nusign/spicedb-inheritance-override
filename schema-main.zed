@@ -66,16 +66,11 @@ definition folder {
   permission parent_public_no_access = public_no_access + public_viewer + public_reviewer
   permission parent_public_viewer = public_viewer + (parent->parent_public_viewer - parent_public_no_access)
   permission parent_public_reviewer = public_reviewer + (parent->parent_public_reviewer - parent_public_no_access)
-
-  // permission retrieve = viewer + reviewer + editor + organization->administratorship + (parent->viewer + parent->reviewer + parent->editor - direct_no_access) + (parent->public_viewer + parent->public_reviewer - direct_public_no_access)
-  // permission update = editor + organization->administratorship + parent->update
-  // permission delete = editor + organization->administratorship + parent->delete
 }
 
 definition document {
   relation organization: organization
-  relation folder: folder
-  relation parent: document
+  relation parent: document | folder
 
   relation direct_no_access: user 
   relation direct_viewer: user
@@ -97,23 +92,23 @@ definition document {
   relation public_reviewer: user:* | user:* with password_protected | guest:* | guest:* with password_protected
 
   permission parent_no_access = direct_no_access + direct_viewer + direct_reviewer + direct_editor
-  permission parent_viewer = direct_viewer + ( folder->parent_viewer + parent->parent_viewer - parent_no_access)
-  permission parent_reviewer = direct_reviewer + ( folder->parent_reviewer + parent->parent_reviewer -  parent_no_access)
-  permission parent_editor = direct_editor + ( folder->parent_editor + parent->parent_editor -  parent_no_access)
+  permission parent_viewer = direct_viewer + ( parent->parent_viewer - parent_no_access)
+  permission parent_reviewer = direct_reviewer + ( parent->parent_reviewer - parent_no_access)
+  permission parent_editor = direct_editor + ( parent->parent_editor - parent_no_access)
 
   permission parent_group_no_access = group_no_access + group_viewer + group_reviewer + group_editor
-  permission parent_group_viewer = group_viewer + ( folder->parent_group_viewer + parent->parent_group_viewer - parent_group_no_access)
-  permission parent_group_reviewer = group_reviewer + ( folder->parent_group_reviewer + parent->parent_group_reviewer - parent_group_no_access)
-  permission parent_group_editor = group_editor + ( folder->parent_group_editor + parent->parent_group_editor - parent_group_no_access)
+  permission parent_group_viewer = group_viewer + ( parent->parent_group_viewer - parent_group_no_access)
+  permission parent_group_reviewer = group_reviewer + ( parent->parent_group_reviewer - parent_group_no_access)
+  permission parent_group_editor = group_editor + ( parent->parent_group_editor - parent_group_no_access)
 
   permission parent_organization_no_access = organization_no_access + organization_viewer + organization_reviewer + organization_editor
-  permission parent_organization_viewer = organization_viewer + ( folder->parent_organization_viewer + parent->parent_organization_viewer - parent_organization_no_access)
-  permission parent_organization_reviewer = organization_reviewer + ( folder->parent_organization_reviewer + parent->parent_organization_reviewer - parent_organization_no_access)
-  permission parent_organization_editor = organization_editor + ( folder->parent_organization_editor + parent->parent_organization_editor - parent_organization_no_access)
+  permission parent_organization_viewer = organization_viewer + ( parent->parent_organization_viewer - parent_organization_no_access)
+  permission parent_organization_reviewer = organization_reviewer + ( parent->parent_organization_reviewer - parent_organization_no_access)
+  permission parent_organization_editor = organization_editor + ( parent->parent_organization_editor - parent_organization_no_access)
 
   permission parent_public_no_access = public_no_access + public_viewer + public_reviewer
-  permission parent_public_viewer = public_viewer + ( folder->parent_public_viewer + parent->parent_public_viewer - parent_public_no_access)
-  permission parent_public_reviewer = public_reviewer + ( folder->parent_public_reviewer + parent->parent_public_reviewer - parent_public_no_access)
+  permission parent_public_viewer = public_viewer + ( parent->parent_public_viewer - parent_public_no_access)
+  permission parent_public_reviewer = public_reviewer + ( parent->parent_public_reviewer - parent_public_no_access)
 
   permission viewer = direct_viewer + group_viewer + organization_viewer + public_viewer + parent_viewer + parent_group_viewer + parent_organization_viewer + parent_public_viewer
   permission reviewer = direct_reviewer + group_reviewer + organization_reviewer + public_reviewer + parent_reviewer + parent_group_reviewer + parent_organization_reviewer + parent_public_reviewer
